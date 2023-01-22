@@ -34,7 +34,7 @@ mongoose.connect(process.env.dbURL).then(() => {
   console.log("Connection established")
   server.listen(PORT, (err) => {
     if (err) return console.log("Something went wrong");
-    console.log(`Server running on port http://localhost:${PORT}/api/v1`);
+    console.log(`Server running on port http://0.0.0.0:${PORT}/api/v1`);
   });
 }).catch((error) => console.log(error));
 
