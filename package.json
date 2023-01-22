@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Backend api for campus recruitment system",
+  "main": "server.js",
+  "scripts": {
+    "start": "npm server.js",
+    "server": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "saket chandorkar mithilesh dalvi sharwari amberkar amisha gawand",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "googleapis": "^109.0.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.5.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.7.8",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.1",
+    "nodemon": "^2.0.19"
+  }
+}
