@@ -4,8 +4,8 @@
   "description": "Backend api for campus recruitment system",
   "main": "server.js",
   "scripts": {
-    "start": "npm server.js",
-    "server": "nodemon server.js"
+    "start": "node server.js",
+    "server1": "nodemon server.js"
   },
   "keywords": [],
   "author": "saket chandorkar mithilesh dalvi sharwari amberkar amisha gawand",

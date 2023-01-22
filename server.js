@@ -30,7 +30,13 @@ server.use(express.static("files"));
 server.use("/files", express.static("files"));
 
 // db connection
-mongoose.connect(process.env.dbURL).then(()=>console.log("Connection established")).catch((error) => console.log(error));
+mongoose.connect(process.env.dbURL).then(() => {
+  console.log("Connection established")
+  server.listen(PORT, (err) => {
+    if (err) return console.log("Something went wrong");
+    console.log(`Server running on port http://localhost:${PORT}/api/v1`);
+  });
+}).catch((error) => console.log(error));
 
 //////////////////////////////////
 // all routes
@@ -41,7 +47,7 @@ server.use("/api/v1/recruiter", recruiterRoutes);
 server.use("/api/v1/admin", adminRoutes);
 
 //////////////////////////////////
-server.listen(PORT, (err) => {
-    if(err) return console.log("Something went wrong")
-    console.log(`Server running on port http://localhost:${PORT}/api/v1`);
-});
+// server.listen(PORT, (err) => {
+//     if(err) return console.log("Something went wrong")
+//     console.log(`Server running on port http://localhost:${PORT}/api/v1`);
+// });
