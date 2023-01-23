@@ -54,6 +54,7 @@ const userSchema = new Schema({
   applied_to_jobs: [],
   selected_in_jobs: [],
   saved_jobs: [],
+  applied_to_group: Object,
 });
 
 module.exports = mongoose.model("users", userSchema);

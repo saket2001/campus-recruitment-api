@@ -8,7 +8,8 @@ const commonMethods = require("../utils/common");
 const userResume = require("../models/userResume");
 const jobDetails = require("../models/jobDetails");
 const job = require("../models/job");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
+const group = require("../models/group");
 
 ///////////////////////////
 
@@ -158,16 +159,19 @@ const userDbOperations = {
     try {
       let data = {
         details: {},
-        resume_file:'',
-      }
-      data['details'] = await userResumeData.findOne(
+        resume_file: "",
+      };
+      data["details"] = await userResumeData.findOne(
         { user_id: id },
-        { _id: 0, user_id:0, __v: 0, created_at: 0 }
+        { _id: 0, user_id: 0, __v: 0, created_at: 0 }
       );
 
-      const resumeData = await userResume.findOne({ user_id: id }, { resume_file: 1 });
-      
-      data['resume_file'] = resumeData.resume_file;
+      const resumeData = await userResume.findOne(
+        { user_id: id },
+        { resume_file: 1 }
+      );
+
+      data["resume_file"] = resumeData.resume_file;
 
       if (data === [] || !data) return false;
 
@@ -267,7 +271,7 @@ const userDbOperations = {
       // check before if form is open or not
       // apply to job
       jobDetailsData?.job_stages.forEach((d) => {
-        if (d.name === 'applicants') {
+        if (d.name === "applicants") {
           d?.data.push({
             user_id: user_id,
           });
@@ -377,18 +381,119 @@ const userDbOperations = {
       jobsData = await job.find(
         { _id: { $in: obj_ids } },
         {
-          company_name:1,
+          company_name: 1,
           role: 1,
           _id: 1,
           location: 1,
           mode: 1,
           salary: 1,
           created_at: 1,
-          is_active:1,
+          is_active: 1,
         }
       );
 
       return jobsData;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+
+  // group routes
+  applyToGroup: async (data, user_id) => {
+    try {
+      const groupData = await group.findOne({ code: data?.code });
+      if (!groupData) return 1;
+
+      // check if candidate is already applied to any group
+      const userData = await user.findOne(
+        { _id: user_id },
+      );
+      if (userData?.applied_to_group?.group_id) {
+        return 2;
+      }
+
+      groupData.members.push({
+        name: userData?.full_name,
+        user_id: user_id,
+        email: userData?.email,
+        contact: userData?.contact,
+        subscribed: true,
+        joined_at: new Date().toString(),
+      });
+
+      await group.findOneAndUpdate(
+        { code: data?.code },
+        {
+          members: groupData.members,
+        }
+      );
+
+      // saved in user's data
+      await user.findOneAndUpdate(
+        { _id: user_id },
+        {
+          applied_to_group: {
+            group_id: groupData?._id,
+            joined_at: new Date().toString(),
+          },
+        }
+      );
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  leaveGroup: async (data, user_id) => {
+    try {
+      await user.findOneAndUpdate(
+        { _id: user_id },
+        {
+          applied_to_group: {},
+        }
+      );
+
+      const groupData = await group.findOne(
+        { _id: data?.group_id },
+        {
+          members: 1,
+        }
+      );
+
+      const newMembers = groupData?.members?.filter(
+        (u) => u.user_id !== user_id
+      );
+      await group.findOneAndUpdate(
+        { _id: data?.group_id },
+        {
+          members: newMembers,
+        }
+      );
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  unsubscribeGroupNotifications: async (data, user_id) => {},
+  getMyGroup: async (user_id) => {
+    try {
+      const userData = await user.findOne(
+        { _id: user_id },
+        { applied_to_group: 1 }
+      );
+      if (!userData?.applied_to_group) return 1;
+
+      const groupData = await group.find(
+        { _id: userData?.applied_to_group?.group_id },
+        { creator_id: 0 }
+      );
+      if (!groupData) return 1;
+
+      return groupData;
     } catch (err) {
       console.log(err);
       return false;

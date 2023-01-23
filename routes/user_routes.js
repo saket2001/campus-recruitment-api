@@ -150,5 +150,24 @@ user_router.get(
   userControllers.jobController.getAppliedJobs
 );
 
+// group routes 
+user_router.get(
+  "/get-my-group",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.groupController.getMyGroup
+);
+user_router.post(
+  "/apply-group",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.groupController.applyToGroup
+);
+user_router.delete(
+  "/leave-group",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.groupController.leaveGroup
+);
 ////////////////////////////////////////////
 module.exports = user_router;
