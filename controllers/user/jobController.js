@@ -1,5 +1,6 @@
 const ROLES_LIST = require("../../constants/roles_list");
 const userDbOperations = require("../../db/user");
+const job = require("../../models/job");
 const commonMethods = require("../../utils/common");
 
 ////////////////////////////
@@ -33,10 +34,15 @@ const JobController = {
           isError: false,
           message: "No job found by this id!",
         });
-      if (response === 2)
+      else if (response === 2)
         return res.status(200).json({
           isError: false,
           message: "You have already applied to this job!",
+        });
+      else
+        return res.status(200).json({
+          isError: false,
+          message: "The job is no longer accepting responses!",
         });
 
       if (response) {

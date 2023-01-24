@@ -285,13 +285,10 @@ const recruiterDbOperations = {
     }
   },
   // common routes
-  getJobs: async (role) => {
+  getJobs: async () => {
     try {
       // get job
-      const data = await job.find();
-      // get job details i.e applicants etc
-      // if (role === 491912 || role === 841031)
-      //   data['job_details'] = await jobDetails.find()
+      const data = await job.find().sort({ created_at:-1 });
       return data;
     } catch (err) {
       console.log(err);

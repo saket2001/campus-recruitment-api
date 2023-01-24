@@ -259,16 +259,26 @@ const userDbOperations = {
     try {
       // check if job exists
       const jobDetailsData = await jobDetails.findOne({ job_id: job_id });
-      // console.log(jobDetailsData);
-      // if (jobDetailsData?.length === 0) return 1;
+      console.log(jobDetailsData);
+      const jobDetailsDataApplicants = jobDetailsData?.job_stages?.find(
+        (d) => d.name === "applicants"
+      );
 
       // check if already applied
-      const isApplied = jobDetailsData.applicants?.find(
+      const isApplied = jobDetailsDataApplicants?.data?.find(
         (d) => d.user_id === user_id
       );
       if (isApplied) return 2;
 
       // check before if form is open or not
+      const jobData = await job.findOne(
+        { _id: job_id },
+        { last_date: 1, is_active: 1 }
+      );
+      if (jobData?.is_active || new Date(jobData?.last_date) < new Date()) {
+        return 3;
+      }
+
       // apply to job
       jobDetailsData?.job_stages.forEach((d) => {
         if (d.name === "applicants") {
@@ -289,7 +299,7 @@ const userDbOperations = {
         applied_to_jobs: 1,
         _id: 0,
       });
-      // !TODO: Improve this
+
       // only job id should be stored
       userData.applied_to_jobs.push({
         job_id: job_id,
@@ -406,9 +416,7 @@ const userDbOperations = {
       if (!groupData) return 1;
 
       // check if candidate is already applied to any group
-      const userData = await user.findOne(
-        { _id: user_id },
-      );
+      const userData = await user.findOne({ _id: user_id });
       if (userData?.applied_to_group?.group_id) {
         return 2;
       }
