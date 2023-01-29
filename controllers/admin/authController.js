@@ -47,17 +47,13 @@ const authController = {
           full_name:admin.full_name,
         });
 
-        //   TODO send sign in mail
         commonMethods.sendEmail({
-          subject: "Admin sign in conformation",
+          subject: "Admin Sign In Conformation",
           to: admin?.email?.toString(),
-          body: `Greetings Admin
-          <br/>
-          Your account was just logged in 
-          at ${new Date().toDateString()} , ${new Date().toLocaleTimeString()}. 
-          <br/> 
-          This mail was sent to you for alerting account sign in.
-        `,
+          viewName: "adminSignIn",
+          context:{
+            time:`${new Date().toDateString()}, ${new Date().toLocaleTimeString()}`
+          }
         });
       } else {
         res.status(200).json({

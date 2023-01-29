@@ -39,7 +39,7 @@ const JobController = {
           isError: false,
           message: "You have already applied to this job!",
         });
-      else
+      else if(response === 3)
         return res.status(200).json({
           isError: false,
           message: "The job is no longer accepting responses!",
@@ -54,19 +54,12 @@ const JobController = {
         commonMethods.sendEmail({
           subject: "Candidate Application Submitted Successfully!",
           to: user?.email?.toString(),
-          body: `Greetings candidate
-          <br/>
-          Your job application was submitted successfully for ${
-            jobData.role
-          } for company ${
-            jobData.company_name
-          } at ${new Date().toDateString()} , ${new Date().toLocaleTimeString()}. 
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        If you haven't applied to this job then please contact us back by replying to this email.`,
+          viewName: 'applyJob',
+          context: {
+            role:jobData?.role,
+            company_name: jobData?.company_name,
+            time:new Date().toDateString(),
+          }
         });
         return res.status(200).json({
           isError: false,

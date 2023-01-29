@@ -1,0 +1,41 @@
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * { margin: 0; padding: 0; } .jobItem { display: grid;
+      grid-template-columns: 1fr; padding: 15px 20px; background-color: #d9cbca;
+      border-radius: 8px; } .row{ display: flex !important; flex-direction: row;
+      gap: 0.2rem !important; } h1, h2 { color: #222121; font-size: 21px; } p {
+      color: #423f3e; font-size: 17px; } button { background-color: #192c6e;
+      color: #dcdee6; padding: 12px 25px; border-radius: 4px; border: 0; width:
+      fit-content; } a { text-decoration: none; color: #dcdee6; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Greetings candidate</h1>
+    <p>There is a new job post by a recruiter at your campus</p>
+    <br />
+    <div class="jobItem">
+      <h2>{{role}}</h2>
+      <p>Company: {{company_name}}</p>
+      <p>Location:
+        {{location}}
+      </p>
+      <p>Salary Offered:
+        {{salary}}
+      </p>
+      <p>Last date to apply:
+        {{last_date}}
+      </p>
+      <br />
+      <button>
+        <a style="color: #dcdee6;" href="https://campus-recruitment-system-rust.vercel.app/auth/user/sign-in">Read more</a>
+      </button>
+    </div>
+  </body>
+
+</html>

@@ -1,11 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-// const routes = require("./routes")
 const userRoutes = require("./routes/user_routes");
 const recruiterRoutes = require("./routes/recruiter_routes");
 const commonRoutes = require("./routes/common_routes");
 const adminRoutes = require("./routes/admin_routes");
+const companyRoutes = require("./routes/company_routes");
 let session = require("express-session");
 
 //////////////////////////////////
@@ -31,6 +31,7 @@ server.use(express.urlencoded({ extended: true }));
 server.use(express.static("files"));
 server.use("/files", express.static("files"));
 
+//////////////////////////////////
 // db connection
 mongoose
   .connect(process.env.dbURL)
@@ -52,6 +53,7 @@ server.use("/api/v1/", commonRoutes);
 server.use("/api/v1/user", userRoutes);
 server.use("/api/v1/recruiter", recruiterRoutes);
 server.use("/api/v1/admin", adminRoutes);
+server.use("/api/v1/company", companyRoutes);
 
 //////////////////////////////////
 // server.listen(PORT, (err) => {

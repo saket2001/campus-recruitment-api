@@ -106,6 +106,12 @@ recruiter_routes.delete(
   authMethods.verifyUser(ROLES_LIST.recruiter, ROLES_LIST.admin),
   recruiterControllers.JobController.removeCandidate
 );
+recruiter_routes.get(
+  "/download-job-data/:job_id/:view",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.recruiter, ROLES_LIST.admin),
+  recruiterControllers.JobController.downloadJobApplicantsData
+);
 
 
 ////////////////////////////////////////////

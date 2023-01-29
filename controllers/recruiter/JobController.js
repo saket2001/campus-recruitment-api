@@ -1,10 +1,9 @@
-const ROLES_LIST = require("../../constants/roles_list");
 const recruiterDbOperations = require("../../db/recruiter");
-const userDbOperations = require("../../db/user");
+const group = require("../../models/group");
 const job = require("../../models/job");
 const user = require("../../models/user");
-const { sendEmail } = require("../../utils/common");
 const commonMethods = require("../../utils/common");
+const fs = require('fs');
 // const jobDetails = require("../../models/jobDetails");
 // const userResumeData = require("../../models/userResumeData");
 //////////////////////////////
@@ -34,20 +33,44 @@ const JobController = {
       // save the data in db
       const response = await recruiterDbOperations.createJob(id, jobData);
 
-      // !TODO: Send email and whatsapp notification to recruiter and user
-
       if (response === 1)
         return res.status(200).json({
           isError: true,
           message: "Recruiter needs to be verified to create job!",
         });
 
-      if (response)
+      if (response) {
+        // !TODO: Send whatsapp notification to recruiter and user
+        // email bulk notification
+        const yearsToSendEmail = [
+          new Date().getFullYear(),
+          new Date().getFullYear() - 1,
+        ];
+        const groups = await group.find({ year: { $in: yearsToSendEmail } });
+
+        groups?.forEach((groupData) => {
+          const mailIDs = groupData?.members.map((member) => member.email);
+
+          commonMethods?.sendEmail({
+            subject: `Job Alert at Virtual Recruitment`,
+            to: mailIDs,
+            viewName: "JobAlert",
+            context: {
+              role: jobData.role,
+              salary: jobData?.salary,
+              company_name: jobData.company_name,
+              location: jobData.location,
+              last_date: new Date(jobData.last_date).toDateString(),
+            },
+          });
+        });
+
         return res.status(200).json({
           isError: false,
           message: "Job Created Successfully!",
           data: response,
         });
+      }
 
       return res.status(200).json({
         isError: true,
@@ -267,18 +290,23 @@ const JobController = {
 
       // !TODO send notifications to user
       if (response) {
-        const userData = await user.findById(body.user_id,{email:1})
-        const jobData = await job.findById(job_id, { role: 1, company_name: 1 });
+        const userData = await user.findById(body.user_id, { email: 1 });
+        const jobData = await job.findById(job_id, {
+          role: 1,
+          company_name: 1,
+        });
 
         commonMethods.sendEmail({
-          subject: `Update to your job application`,
+          subject: `Job application update`,
           to: userData?.email?.toString(),
-          body: `Greetings candidate
-          <br/>
-          <br/>
-          Your job application for ${jobData.role} for company ${
-            jobData.company_name
-          } has been updated by the recruiter lately at ${new Date().toDateString()} , ${new Date().toLocaleTimeString()}.`,
+          viewName: "jobStatusChange",
+          context: {
+            role: jobData?.role,
+            company_name: jobData?.company_name,
+            time: new Date().toDateString(),
+            currStage: body.currStage,
+            newStage: body.newStage,
+          },
         });
 
         res.status(200).json({
@@ -326,11 +354,48 @@ const JobController = {
       });
     }
   },
+  downloadJobApplicantsData: async (req, res) => {
+    try {
+      const { view, job_id } = req.params;
+      const response = await recruiterDbOperations.downloadJobApplicantsData(
+        job_id,
+        view
+      );
+
+      // writing in file
+      fs.writeFile("./files/downloads/recruiter/output.txt", JSON.stringify(response), "utf8", function (err) {
+        if (err) {
+          console.log("An error occurred while writing JSON Object to File.");
+          return console.log(err);
+        }
+
+        console.log("JSON file has been saved.");
+      });
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            data: response,
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to get filters!",
+          });
+      return res.status(200);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
   // common route for all
   getJobs: async (req, res) => {
     try {
       const roleCode = req.user.roles[0];
       const response = await recruiterDbOperations.getJobs(roleCode);
+
       if (response)
         return res.status(200).json({
           isError: false,

@@ -122,29 +122,20 @@ const authController = {
       });
 
       // send recruiter email of account creation
-      const message = await commonMethods.sendEmail({
+      commonMethods.sendEmail({
         subject: "Recruiter Account Created Successfully!",
         to: savedRecruiter.email.toString(),
-        body: `<p>Hello ${savedRecruiter.full_name}, your recruiter account has been successfully created for ${savedRecruiter.company} company.
-        <br/>
-        Your account stands as unverified for now, your verification process will be completed within next 48hrs.
-        <br/>
-        After that you can perform all the tasks of a recruiter.
-        <br/>
-        <br/>
-        <br/>
-        If you haven't created this account, please contact us back immediately.
-        <br/>
-        For any queries or issues, please contact us using this email.
-        </p>`,
+        viewName: "recruiterCreation",
+        context: {
+          time: new Date().toDateString(),
+          company_name: savedRecruiter?.company,
+        },
       });
-
-      console.log({ message });
 
       res.status(200).json({
         isError: false,
         token: token,
-        message: `Recruiter registered successfully & ${message}`,
+        message: `Recruiter registered successfully`,
         code: ROLES_LIST[savedRecruiter.role],
         full_name: savedRecruiter.full_name,
       });

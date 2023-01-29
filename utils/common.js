@@ -2,7 +2,8 @@ const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 require("dotenv").config();
 const { v4: uuidv4 } = require("uuid");
-
+let hbs = require("nodemailer-express-handlebars");
+const path = require("path");
 /////////////////////////
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -13,9 +14,19 @@ const oAuth2Client = new google.auth.OAuth2(
 
 oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
+const handleBarOptions = {
+  viewEngine: {
+    extName: ".handlebars",
+    partialsDir: path.resolve("./emailViews"),
+    defaultLayout: false,
+  },
+  viewPath: path.resolve("./emailViews"),
+  extName: ".handlebars",
+};
+
 /////////////////////////
 const commonMethods = {
-  checkInputs: async (obj,exclude=[]) => {
+  checkInputs: async (obj, exclude = []) => {
     for (const key in obj) {
       if (exclude.includes(key)) continue;
       if (obj[key] === "")
@@ -25,9 +36,8 @@ const commonMethods = {
   },
   sendEmail: async (obj) => {
     try {
-      let message = '';
+      // let message = '';
       const accessToken = await oAuth2Client.getAccessToken();
-      // console.log(process.env.EMAIL);
       const transport = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -41,27 +51,33 @@ const commonMethods = {
         },
       });
 
-      const mailOptions = {
+      transport.use("compile", hbs(handleBarOptions));
+
+      let mailOptions = {
         from: "ecampusrecruitment@gmail.com",
         to: obj.to,
         subject: obj.subject,
-        //  text: "Hello from gmail email using API",
-        html: `<p>${obj.body}</p>`,
+        template: obj?.viewName,
+        context: obj?.context,
       };
+      if (obj.html)
+        mailOptions = {
+          from: "ecampusrecruitment@gmail.com",
+          to: obj.to,
+          subject: obj.subject,
+          html: `${obj.body}`,
+        };
 
-      message = transport
+      const message = transport
         .sendMail(mailOptions)
         .then((result) => {
-          console.log(result);
           return "Email send successfully to user";
         })
         .catch((err) => {
           console.log(err);
           return "Error in sending email to user!";
         });
-      
-      console.log({ message });
-      
+
       return message;
     } catch (error) {
       console.log(error);

@@ -1,7 +1,6 @@
 const authMethods = require("../../utils/auth");
 const companyDbOperations = require("../../db/company");
 const commonMethods = require("../../utils/common");
-const sendEmail = require("../../utils/sendEmail");
 //////////////////////////////////
 const authController = {
   companyRegistration: async (req, res) => {
@@ -32,35 +31,25 @@ const authController = {
           isError: true,
           message: "Company with this email already exists",
         });
-      
-      // send company id to company email for creating recruiters
-      const message = await commonMethods.sendEmail({
-        subject: "Company Account Created Successfully!",
-        to: savedCompany.email.toString(),
-        body: `<p>Hello User, your company named ${
-          savedCompany.full_name
-        } has successfully created an account and registered itself on Virtual Campus Recruitment. 
-        <br/>
-        For now, your company stands as unverified and will be verified by system administrators. Once verified company and recruiters can create jobs on our system. Verification process will be completed within next 48hrs.
-        <br/>
-        Your company can create only 2 recruiters account using your company ID: ${savedCompany._id.toString()}.
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        For any queries or issues, please contact us using this email.
-        </p>`,
-      });
 
-       console.log({ message });
+      // send company id to company email for creating recruiters
+      commonMethods.sendEmail({
+        subject: "Company Account Created Successfully!",
+        to: savedCompany?.email.toString(),
+        viewName: "companyVerification",
+        context: {
+          company_name: savedCompany?.full_name,
+          company_id: savedCompany?._id,
+          time: new Date().toDateString(),
+        },
+      });
 
       res.status(200).json({
         isError: false,
-        message: `Company registered successfully & ${message}`,
+        message: "Company registered successfully",
       });
-
-    } catch(err) {
-      console.error(err)
+    } catch (err) {
+      console.error(err);
       res
         .status(500)
         .json({ isError: true, message: "Something went wrong on the server" });

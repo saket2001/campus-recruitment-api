@@ -197,7 +197,7 @@ const recruiterDbOperations = {
       return false;
     }
   },
-  getJobEntries: async (id, view) => {
+  getJobEntries: async (id, view, dir = "asc") => {
     try {
       let usersData,
         userIDs = [];
@@ -284,11 +284,32 @@ const recruiterDbOperations = {
       return false;
     }
   },
+  downloadJobApplicantsData: async (job_id, view) => {
+    try {
+      // getting ids of user
+      const jobData = await jobDetails.findOne({ job_id: job_id });
+      const viewData = jobData?.job_stages?.find((d) => {
+        if (d.name === view) return d;
+      });
+      const viewDataIDs = viewData?.data?.map((d) => d.user_id);
+
+      // getting users based on ids
+      const usersData = await userResumeData.find(
+        { user_id: { $in: viewDataIDs } },
+        { basic_details: 1, _id: 0, education: 1, skills: 1 }
+      );
+
+      return usersData;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
   // common routes
   getJobs: async () => {
     try {
       // get job
-      const data = await job.find().sort({ created_at:-1 });
+      const data = await job.find().sort({ created_at: -1 });
       return data;
     } catch (err) {
       console.log(err);
@@ -299,17 +320,14 @@ const recruiterDbOperations = {
     try {
       let data = {};
       // get job
-      data["job"] = await job.findById(job_id);
+      data["job"] = await job.findById(job_id).sort({ created_at: -1 });
 
-      const temp = await jobDetails.find(
-        { job_id: job_id },
-        { job_stages: 1, _id: 0 }
-      );
+      const temp = await jobDetails
+        .find({ job_id: job_id }, { job_stages: 1, _id: 0 })
+        .sort({ created_at: -1 });
       data["job_details"] = await temp[0]["job_stages"]?.find((d) => {
         if (d.name === "applicants") return d["data"];
       });
-
-      console.log(data["job_details"]);
 
       return data;
     } catch (err) {

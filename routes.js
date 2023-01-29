@@ -104,12 +104,12 @@ router.get("/", (req, res) => {
 /*
     admin
 */
-router.post("/admin/signin", adminControllers.authController.adminSignIn);
-router.get(
-  "/get-admin-details",
-  authMethods.authenticateToken,
-  adminControllers.authController.getAdminById
-);
+// router.post("/admin/signin", adminControllers.authController.adminSignIn);
+// router.get(
+//   "/get-admin-details",
+//   authMethods.authenticateToken,
+//   adminControllers.authController.getAdminById
+// );
 /*
     recruiter
 */

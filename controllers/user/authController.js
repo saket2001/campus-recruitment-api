@@ -71,6 +71,9 @@ const authController = {
         email: body.user_email,
         password: hashedPassword,
         contact_no: body.user_contact,
+        college_name:body.college_name,
+        college_branch:body.college_branch,
+        date_of_birth:body.date_of_birth,
         role: "user",
         is_verified: false,
         created_at: new Date(),
@@ -90,21 +93,16 @@ const authController = {
       });
 
       // send email of account creation and verification process
-      const emailStatus = await commonMethods.sendEmail({
-        subject: "Candidate Account Created Successfully!",
-        to: body.user_email?.toString(),
-        body: `Candidate account successfully created at ${new Date().toDateString()} , ${new Date().toLocaleTimeString()}. 
-        <br/>
-        To verify your account status, please click on the following link, http://localhost:3000/auth/user/account-verification/?id=${response.SavedUser?._id.toString()}&token=${response.token.token
-          }
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        If you haven't created this account then please contact us back by replying to this email.`,
+      commonMethods.sendEmail({
+        subject: "User Account Created!",
+        to: body?.user_email?.toString(),
+        viewName: "userVerification",
+        context: {
+          user_id: response.SavedUser._id.toString(),
+          token: token,
+          time: new Date().toDateString(),
+        },
       });
-
-      console.log({ emailStatus })
 
       // !Bug On no email found user doesn't get any response
       // !TODO delete user account at such time
@@ -112,7 +110,7 @@ const authController = {
       res.status(200).json({
         isError: false,
         token: token,
-        message: `User registered successfully & ${emailStatus}`,
+        message: "User registered successfully",
         code: ROLES_LIST[response.SavedUser["role"]],
         full_name: response.SavedUser['full_name'],
       });

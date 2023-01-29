@@ -275,7 +275,7 @@ const userDbOperations = {
         { _id: job_id },
         { last_date: 1, is_active: 1 }
       );
-      if (jobData?.is_active || new Date(jobData?.last_date) < new Date()) {
+      if (!jobData?.is_active || new Date(jobData?.last_date) < new Date()) {
         return 3;
       }
 
