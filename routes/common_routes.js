@@ -2,6 +2,7 @@ const express = require("express");
 const common_routes = express.Router();
 const authMethods = require("../utils/auth");
 const recruiterControllers = require("../controllers/recruiter");
+const adminControllers = require("../controllers/admin");
 const ROLES_LIST = require("../constants/roles_list");
 ////////////////////////////////////////////
 
@@ -48,15 +49,28 @@ common_routes.get(
   ),
   recruiterControllers.JobController.getDetails
 );
-// common_routes.post(
-//   "/get-requested-jobs",
-//   authMethods.authenticateToken,
-//   authMethods.verifyUser(
-//     ROLES_LIST.user,
-//     ROLES_LIST.recruiter,
-//     ROLES_LIST.admin
-//   ),
-//   userController.jobController.getRequestedJobs
-// );
+
+// notice
+common_routes.get(
+  "/get-notices/:group_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(
+    ROLES_LIST.admin,
+    ROLES_LIST.recruiter,
+    ROLES_LIST.user
+  ),
+  adminControllers.noticeController.viewAllNotices
+);
+common_routes.get(
+  "/get-notice/:notice_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(
+    ROLES_LIST.admin,
+    ROLES_LIST.recruiter,
+    ROLES_LIST.user
+  ),
+  adminControllers.noticeController.viewNotice
+);
+
 ////////////////////////////////////////////
 module.exports = common_routes;

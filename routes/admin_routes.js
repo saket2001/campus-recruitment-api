@@ -39,5 +39,25 @@ admin_routes.delete(
   adminController.groupController.deleteGroupMember
 );
 
+// notice routes
+admin_routes.post(
+  "/create-notice",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin,ROLES_LIST.recruiter),
+  adminController.noticeController.createNotice
+);
+admin_routes.delete(
+  "/delete-notice/:notice_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin,ROLES_LIST.recruiter),
+  adminController.noticeController.deleteNotice
+);
+admin_routes.put(
+  "/edit-notice/:notice_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin, ROLES_LIST.recruiter),
+  adminController.noticeController.editNotice
+);
+
 
 module.exports = admin_routes;

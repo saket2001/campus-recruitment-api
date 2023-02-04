@@ -2,6 +2,7 @@
 const admin = require("../models/admin");
 const group = require("../models/group");
 const user = require("../models/user");
+const notice = require("../models/notice");
 const { randomUUID } = require("crypto");
 ///////////////////////////
 
@@ -83,23 +84,111 @@ const adminDbOperations = {
       return false;
     }
   },
-  deleteGroupMember: async (group_id,user_id) => {
+  deleteGroupMember: async (group_id, user_id) => {
     try {
       // check if group exists
       const groupData = await group.findOne({ _id: group_id }, { members: 1 });
       if (!groupData) return 1;
 
       // removing user from group
-      const newMembers = groupData?.members?.filter((member) => member?.user_id !== user_id);
+      const newMembers = groupData?.members?.filter(
+        (member) => member?.user_id !== user_id
+      );
       // saving
       await group.findOneAndUpdate({ _id: group_id }, { members: newMembers });
 
       // removing group entry from user
-      await user.findOneAndUpdate({ _id: user_id }, {
-        applied_to_group: {}
-      });
+      await user.findOneAndUpdate(
+        { _id: user_id },
+        {
+          applied_to_group: {},
+        }
+      );
 
       return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  createNotice: async (body, creator_id) => {
+    try {
+      // creating new
+      const newNotice = new notice({
+        group_id: body?.group_id,
+        creator_id: creator_id,
+        title: body?.title,
+        body: body?.body,
+        isAlertOn: !!body?.isAlertOn,
+        created_at: new Date(),
+      });
+      const savedNotice = await newNotice.save();
+      // // saving in group data
+      // const groupData = await group.findOne(
+      //   { _id: body?.group_id },
+      //   { posts: [] }
+      // );
+      // groupData?.posts.push(savedNotice._id);
+      // await group.findOneAndUpdate(
+      //   { _id: body?.group_id },
+      //   {
+      //     posts: groupData?.posts,
+      //   }
+      // );
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  editNotice: async (body, notice_id) => {
+    try {
+      const data = await notice.findOneAndUpdate(
+        { _id: notice_id },
+        {
+          ...body,
+        }
+      );
+      if (!data) return 1;
+      return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  deleteNotice: async (notice_id) => {
+    try {
+      const data = await notice.findOneAndDelete({ _id: notice_id });
+      if (!data) return 1;
+      if (data) return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  viewAllNotices: async (group_id) => {
+    try {
+      const data = {
+        group_details: {},
+        notices: [],
+      };
+      data["group_details"] = await group.findOne({ _id: group_id });
+      data["notices"] = await notice.find({ group_id: group_id });
+      if (data?.length <= 0) return 1;
+
+      return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  viewNotice: async (notice_id) => {
+    try {
+      const data = await notice.findOne({ _id: notice_id });
+      if (data?.length <= 0) return 1;
+
+      return data;
     } catch (err) {
       console.log(err);
       return false;
