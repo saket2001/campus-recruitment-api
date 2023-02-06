@@ -6,13 +6,17 @@ const recruiterRoutes = require("./routes/recruiter_routes");
 const commonRoutes = require("./routes/common_routes");
 const adminRoutes = require("./routes/admin_routes");
 const companyRoutes = require("./routes/company_routes");
+const cookieparser = require("cookie-parser");
 let session = require("express-session");
+const commonMethods = require("./utils/common");
+const authMethods = require("./utils/auth");
 
 //////////////////////////////////
 require("dotenv").config();
 const PORT = process.env.PORT;
 const server = express();
 server.use(express.json());
+server.use(cookieparser());
 server.use(
   cors({
     exposedHeaders: ["Content-Type"],
@@ -24,7 +28,7 @@ server.use(
     secret: "keyboard cat",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true, maxAge: 120000000000 }, // 60min  12000000
+    cookie: { secure: true, maxAge: 12000000 }, // 60min  12000000
   })
 );
 server.use(express.urlencoded({ extended: true }));

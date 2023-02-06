@@ -7,6 +7,11 @@ const ROLES_LIST = require("../constants/roles_list");
 ////////////////////////////////////////////
 
 // common routes
+common_routes.post(
+  "/refresh-login",
+  authMethods.refreshToken,
+);
+
 common_routes.get(
   "/get-jobs",
   authMethods.authenticateToken,

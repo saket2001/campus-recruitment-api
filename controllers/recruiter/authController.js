@@ -35,12 +35,17 @@ const authController = {
           id: user._id,
           roles:[ROLES_LIST[user.role]],
         });
+        const refreshToken = await authMethods.signRefreshJWT({
+          id: user._id,
+          roles:[ROLES_LIST[user.role]],
+        });
         res.status(200).json({
           isError: false,
           token: token,
           message: "Recruiter signed in successfully",
           code: ROLES_LIST[user.role],
-          full_name:user.full_name,
+          full_name: user.full_name,
+          refreshToken,
         });
       } else {
         res.status(200).json({
@@ -96,7 +101,7 @@ const authController = {
       const savedRecruiter = await recruiterDbOperations.registerRecruiter(
         recruiter
       );
-      console.log(savedRecruiter);
+      
 
       if (savedRecruiter === 1)
         return res.status(200).json({
@@ -120,6 +125,10 @@ const authController = {
         id: savedRecruiter._id.toString(),
         roles: [ROLES_LIST[savedRecruiter.role]],
       });
+      const refreshToken = await authMethods.signRefreshJWT({
+        id: savedRecruiter._id.toString(),
+        roles: [ROLES_LIST[savedRecruiter.role]],
+      });
 
       // send recruiter email of account creation
       commonMethods.sendEmail({
@@ -138,6 +147,7 @@ const authController = {
         message: `Recruiter registered successfully`,
         code: ROLES_LIST[savedRecruiter.role],
         full_name: savedRecruiter.full_name,
+        refreshToken,
       });
 
     } catch (err) {

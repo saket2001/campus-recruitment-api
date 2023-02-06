@@ -22,8 +22,6 @@ const authController = {
         full_name: 1,
       });
 
-      console.log(user)
-
       if (user === null)
         return res.status(200).json({
           isError: true,
@@ -32,16 +30,21 @@ const authController = {
 
       if (await authMethods.compareHash(body.user_password, user.password)) {
         // assigning role codes acc to saved in db
-        const token = await authMethods.signJWT({
+        const accessToken = await authMethods.signJWT({
+          id: user._id,
+          roles: [ROLES_LIST[user["role"]]],
+        });
+        const refreshToken = await authMethods.signRefreshJWT({
           id: user._id,
           roles: [ROLES_LIST[user["role"]]],
         });
         res.status(200).json({
           isError: false,
-          token: token,
+          token: accessToken,
+          refreshToken: refreshToken,
           message: "User signed in successfully",
           code: ROLES_LIST[user["role"]],
-          full_name: user['full_name'],
+          full_name: user["full_name"],
         });
       } else {
         res.status(200).json({
@@ -71,9 +74,9 @@ const authController = {
         email: body.user_email,
         password: hashedPassword,
         contact_no: body.user_contact,
-        college_name:body.college_name,
-        college_branch:body.college_branch,
-        date_of_birth:body.date_of_birth,
+        college_name: body.college_name,
+        college_branch: body.college_branch,
+        date_of_birth: body.date_of_birth,
         role: "user",
         is_verified: false,
         created_at: new Date(),
@@ -91,7 +94,11 @@ const authController = {
         id: response.SavedUser._id.toString(),
         roles: [ROLES_LIST[user.role]],
       });
-
+       const refreshToken = await authMethods.signRefreshJWT({
+         id: response.SavedUser._id.toString(),
+         roles: [ROLES_LIST[user.role]],
+       });
+      
       // send email of account creation and verification process
       commonMethods.sendEmail({
         subject: "User Account Created!",
@@ -110,9 +117,10 @@ const authController = {
       res.status(200).json({
         isError: false,
         token: token,
+        refreshToken,
         message: "User registered successfully",
         code: ROLES_LIST[response.SavedUser["role"]],
-        full_name: response.SavedUser['full_name'],
+        full_name: response.SavedUser["full_name"],
       });
     } catch {
       // userDbOperations.deleteUserById();
@@ -148,17 +156,20 @@ const authController = {
         id: user._id,
         roles: [ROLES_LIST[user["role"]]],
       });
-
-      console.log({ token })
+      const refreshToken = await authMethods.signRefreshJWT({
+        id: user._id,
+        roles: [ROLES_LIST[user["role"]]],
+      });
+      
 
       res.status(200).json({
         isError: false,
         token: token,
         message: "User signed in successfully",
         code: ROLES_LIST[user["role"]],
-        full_name: user['full_name'],
+        full_name: user["full_name"],
+        refreshToken,
       });
-
     } catch (err) {
       console.log(err);
       res
@@ -187,7 +198,7 @@ const authController = {
 
       // checking if user already exists and saving it
       const response = await userDbOperations.registerUser(user);
-      console.log(response)
+      console.log(response);
       if (response === 1)
         return res.status(200).json({
           isError: true,
@@ -198,27 +209,18 @@ const authController = {
         id: response.SavedUser?._id.toString(),
         roles: [ROLES_LIST[response.SavedUser?.role]],
       });
-
-      // send email of account creation and verification process
-      // const emailStatus = await commonMethods.sendEmail({
-      //   subject: "Candidate Account Created Successfully!",
-      //   to: body.user_email?.toString(),
-      //   body: `Candidate account successfully created at ${new Date().toDateString()} , ${new Date().toLocaleTimeString()}. 
-      //   <br/>
-      //   To verify your account status, please click on the following link, http://localhost:3000/auth/user/account-verification/?id=${response.SavedUser?._id.toString()}&token=${response.token.token}
-      //   <br/>
-      //   <br/>
-      //   <br/>
-      //   <br/>
-      //   If you haven't created this account then please contact us back by replying to this email.`,
-      // });
+      const refreshToken = await authMethods.signRefreshJWT({
+        id: response.SavedUser?._id.toString(),
+        roles: [ROLES_LIST[response.SavedUser?.role]],
+      });
 
       res.status(200).json({
         isError: false,
         token: token,
         message: `User registered successfully`,
         code: ROLES_LIST[response.SavedUser["role"]],
-        full_name: response.SavedUser['full_name'],
+        full_name: response.SavedUser["full_name"],
+        refreshToken,
       });
     } catch (err) {
       console.log({ err });
@@ -231,7 +233,7 @@ const authController = {
     try {
       // get user id
       const user_id = req.params["user_id"];
-      const token = req.params['token'];
+      const token = req.params["token"];
 
       // check if user exists
       const response = await userDbOperations.userVerification(user_id, token);

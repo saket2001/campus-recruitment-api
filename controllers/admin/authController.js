@@ -18,9 +18,9 @@ const authController = {
         password: 1,
         username: 1,
         _id: 1,
-        role:1,
+        role: 1,
         full_name: 1,
-        email:1,
+        email: 1,
       });
 
       //   checking if admin got is null or not
@@ -36,24 +36,29 @@ const authController = {
       ) {
         const token = await authMethods.signJWT({
           id: admin._id,
-          roles: [ROLES_LIST[admin['role']]],
+          roles: [ROLES_LIST[admin["role"]]],
         });
-        
+        const refreshToken = await authMethods.signRefreshJWT({
+          id: admin._id,
+          roles: [ROLES_LIST[admin["role"]]],
+        });
+
         res.status(200).json({
           isError: false,
           token: token,
           message: "Admin signed in successfully",
           code: ROLES_LIST[admin["role"]],
-          full_name:admin.full_name,
+          full_name: admin.full_name,
+          refreshToken,
         });
 
         commonMethods.sendEmail({
           subject: "Admin Sign In Conformation",
           to: admin?.email?.toString(),
           viewName: "adminSignIn",
-          context:{
-            time:`${new Date().toDateString()}, ${new Date().toLocaleTimeString()}`
-          }
+          context: {
+            time: `${new Date().toDateString()}, ${new Date().toLocaleTimeString()}`,
+          },
         });
       } else {
         res.status(200).json({
@@ -72,7 +77,10 @@ const authController = {
     const admin_id = req.user.id;
     const role = req.user.role;
     try {
-      if (role !== "admin") return res.status(403).json({ isError: true,message:"Access denied" });
+      if (role !== "admin")
+        return res
+          .status(403)
+          .json({ isError: true, message: "Access denied" });
       const user = await adminDbOperations.getAdminById(admin_id);
       res.status(200).json({ data: user });
     } catch {
