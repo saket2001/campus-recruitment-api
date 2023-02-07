@@ -1,6 +1,6 @@
 const userDbOperations = require("../../db/user");
 const commonMethods = require("../../utils/common");
-const fs = require('fs');
+const fs = require("fs");
 const path = require("path");
 ///////////////////////////////////
 
@@ -55,21 +55,20 @@ const profileController = {
       // sending file data
       fs.readFile(filePath, (err, data) => {
         if (err) {
-          console.error(err)
-          return
+          console.error(err);
+          return;
         }
         // console.log(typeof data);
         return res.status(200).json({
           isError: false,
           data,
-        })
-      })
+        });
+      });
 
       // doesn't work
       // return res.status(200).download(filePath);
       // doesn't work
       // return res.status(200).sendFile(filePath, options)
-
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -95,8 +94,8 @@ const profileController = {
           console.error(err);
           return res.status(500).json({
             isError: true,
-            message:"Error while getting the resume file from the server",
-          });;
+            message: "Error while getting the resume file from the server",
+          });
         }
         // console.log(typeof data);
         return res.status(200).json({
@@ -106,7 +105,6 @@ const profileController = {
       });
 
       // return res.status(200).download(fileName);
-
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -121,16 +119,17 @@ const profileController = {
       let data = req.body;
       console.log(data);
 
-      if (data.length === 0) return res.status(200).json({
-        isError: true,
-        message: "No data received!",
-      });
+      if (data.length === 0)
+        return res.status(200).json({
+          isError: true,
+          message: "No data received!",
+        });
 
       // check if files are available too
       if (req.files) {
         // file path
         const filePath = req.filePath;
-        const basicDetailsData = data['basic_details'];
+        const basicDetailsData = data["basic_details"];
         data = {
           ...data,
           basic_details: {
@@ -182,7 +181,7 @@ const profileController = {
       // const emailStatus = await commonMethods.sendEmail({
       //   to: response,
       //   subject: "User Account Deletion",
-      //   body: `Attention User, 
+      //   body: `Attention User,
       //         < br />
       //         Your account has been deleted from Campus Recruitment System on your request.
       //         < br />
@@ -199,8 +198,6 @@ const profileController = {
           isError: false,
           message: "User account deleted successfully!",
         });
-
-
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -284,7 +281,7 @@ const profileController = {
     try {
       const { id } = req.user;
       const { new_pass } = req.body;
-      console.log(req.body)
+      console.log(req.body);
 
       if (!new_pass)
         return res.status(200).json({
@@ -294,15 +291,15 @@ const profileController = {
 
       const response = await userDbOperations.updateUserPass(id, new_pass);
 
-      response ? res.status(200).json({
-        isError: false,
-        message: "User password updated successfully",
-      }) : res.status(200).json({
-        isError: true,
-        message: "User password updated unsuccessfully",
-      });
-
-
+      response
+        ? res.status(200).json({
+            isError: false,
+            message: "User password updated successfully",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "User password updated unsuccessfully",
+          });
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -347,6 +344,29 @@ const profileController = {
             message: "Failed to upload file! Please try again",
           });
       }
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on the server!",
+      });
+    }
+  },
+  checkProfileStatus: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const response = await userDbOperations.checkProfileStatus(id);
+
+      if (response === 1)
+        return res.status(200).json({
+          isError: true,
+          message: "Your profile data is missing or given wrong user id!",
+        });
+
+      return res.status(200).json({
+        isError: true,
+        data: response,
+      });
     } catch (err) {
       console.log(err);
       return res.status(500).json({

@@ -254,6 +254,48 @@ const userDbOperations = {
       return false;
     }
   },
+  checkProfileStatus: async (id) => {
+    const userData = await userResumeData.findOne(
+      { user_id: id },
+      { basic_details: 1, education: 1 }
+    );
+
+    if (!userData) return 1;
+    const keys1 = [
+      "full_name",
+      "email",
+      "age",
+      "college",
+      "branch",
+      "admission_number",
+      "contact",
+    ];
+    const keys2 = ["institute_name", "percentage", "year"];
+    let percentComplete = 0;
+    // first check basic details and assign percent complete
+    for (const key in userData) {
+      if (key === "basic_details") {
+        for (const checkKey of keys1) {
+          if (userData[key][checkKey] && userData[key][checkKey].length > 0) {
+            percentComplete+=10;
+          }
+        }
+      }
+      else if (key === "education") {
+        for (const innerKey in userData[key]) {
+          for (const checkKey of keys2) {
+            if (
+              userData[key][innerKey][checkKey] &&
+              userData[key][innerKey][checkKey].length > 0
+            ) {
+              percentComplete += 10;
+            }
+          }
+        }
+      }
+    }
+    return percentComplete;
+  },
   // job routes
   applyToJob: async (job_id, user_id) => {
     try {

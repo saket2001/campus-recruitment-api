@@ -56,7 +56,6 @@ const profilePictureUpload = multer({
 user_router.post("/signin", userControllers.authController.userSignIn);
 user_router.post("/register", userControllers.authController.userSignUp);
 
-
 // user auth's using google
 user_router.post(
   "/sign-in-google",
@@ -71,13 +70,18 @@ user_router.get(
   userControllers.authController.userEmailVerification
 );
 
-
 // user profile route
 user_router.get(
   "/profile",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.getUserResumeData
+);
+user_router.get(
+  "/profile-status",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
+  userControllers.profileController.checkProfileStatus
 );
 user_router.get(
   "/profile-picture",

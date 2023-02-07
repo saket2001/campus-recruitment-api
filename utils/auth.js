@@ -7,7 +7,7 @@ const authMethods = {
   generateHash: async (text) => await bcrypt.hash(text, saltRounds),
   compareHash: async (input, dbValue) => await bcrypt.compare(input, dbValue),
   signJWT: async (value) =>
-    JWT.sign(value, process.env.SECRET_FOR_TOKEN, { expiresIn: "20s" }),
+    JWT.sign(value, process.env.SECRET_FOR_TOKEN, { expiresIn: "60m" }),
   signRefreshJWT: async (value) =>
     JWT.sign(value, process.env.REFRESH_TOKEN_SECRET, {
       expiresIn: "120m",
