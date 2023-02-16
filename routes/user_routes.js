@@ -173,5 +173,19 @@ user_router.delete(
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.leaveGroup
 );
+
+// notifications
+user_router.get(
+  "/get-notifications",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.jobController.getNotifications
+);
+user_router.delete(
+  "/delete-notification/:notification_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.jobController.deleteNotification
+);
 ////////////////////////////////////////////
 module.exports = user_router;

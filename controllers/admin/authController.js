@@ -50,6 +50,7 @@ const authController = {
           code: ROLES_LIST[admin["role"]],
           full_name: admin.full_name,
           refreshToken,
+          user_id: admin._id,
         });
 
         commonMethods.sendEmail({

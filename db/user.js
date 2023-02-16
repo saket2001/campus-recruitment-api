@@ -10,6 +10,7 @@ const jobDetails = require("../models/jobDetails");
 const job = require("../models/job");
 const mongoose = require("mongoose");
 const group = require("../models/group");
+const notification = require("../models/notification");
 
 ///////////////////////////
 
@@ -277,11 +278,10 @@ const userDbOperations = {
       if (key === "basic_details") {
         for (const checkKey of keys1) {
           if (userData[key][checkKey] && userData[key][checkKey].length > 0) {
-            percentComplete+=10;
+            percentComplete += 10;
           }
         }
-      }
-      else if (key === "education") {
+      } else if (key === "education") {
         for (const innerKey in userData[key]) {
           for (const checkKey of keys2) {
             if (
@@ -544,6 +544,38 @@ const userDbOperations = {
       if (!groupData) return 1;
 
       return groupData;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  saveNotification: async (data) => {
+    try {
+      const newNotification = new notification(data);
+      await newNotification.save();
+
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  getNotifications: async (id) => {
+    try {
+      const data = notification.find({ user_id: id }).sort({ created_at: -1 });
+      if (!data || data === null) return false;
+
+      return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  deleteNotification: async (id) => {
+    try {
+      const data = notification.findByIdAndDelete(id);
+      if (!data || data === null) return false;
+      return data;
     } catch (err) {
       console.log(err);
       return false;

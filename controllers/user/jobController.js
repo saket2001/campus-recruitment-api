@@ -39,7 +39,7 @@ const JobController = {
           isError: false,
           message: "You have already applied to this job!",
         });
-      else if(response === 3)
+      else if (response === 3)
         return res.status(200).json({
           isError: false,
           message: "The job is no longer accepting responses!",
@@ -54,12 +54,12 @@ const JobController = {
         commonMethods.sendEmail({
           subject: "Candidate Application Submitted Successfully!",
           to: user?.email?.toString(),
-          viewName: 'applyJob',
+          viewName: "applyJob",
           context: {
-            role:jobData?.role,
+            role: jobData?.role,
             company_name: jobData?.company_name,
-            time:new Date().toDateString(),
-          }
+            time: new Date().toDateString(),
+          },
         });
         return res.status(200).json({
           isError: false,
@@ -135,23 +135,50 @@ const JobController = {
     }
   },
   // common routes
-  // getRequestedJobs: async (req, res) => {
-  //   try {
-  //     const id_arr = req.body;
-  //     console.log(req.body);
-  //     const response = await userDbOperations.getRequestedJobs(id_arr);
+  getNotifications: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const response = await userDbOperations
+        .getNotifications(id)
 
-  //     return res.status(200).json({
-  //       isError: false,
-  //       data: response,
-  //     });
-  //   } catch (err) {
-  //     console.log(err);
-  //     return res.status(500).json({
-  //       isError: true,
-  //       message: "Something went wrong on server!",
-  //     });
-  //   }
-  // },
+      return response
+        ? res.status(200).json({
+            isError: false,
+            data: response,
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to get notifications!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  deleteNotification: async (req, res) => {
+    try {
+      const { notification_id } = req.params;
+      const response = await userDbOperations.deleteNotification(notification_id);
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "Deleted notification successfully!",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to delete notification!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
 };
 module.exports = JobController;

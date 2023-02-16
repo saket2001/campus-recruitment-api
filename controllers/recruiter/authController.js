@@ -1,6 +1,5 @@
 const authMethods = require("../../utils/auth");
 const commonMethods = require("../../utils/common");
-// const sendEmail = require("../../utils/sendEmail");
 const recruiterDbOperations = require("../../db/recruiter");
 const company = require("../../models/company");
 const ROLES_LIST = require("../../constants/roles_list");
@@ -46,9 +45,10 @@ const authController = {
           code: ROLES_LIST[user.role],
           full_name: user.full_name,
           refreshToken,
+          user_id: user._id,
         });
       } else {
-        res.status(200).json({
+        res.status(400).json({
           isError: true,
           message: "Recruiter password didn't match. Try again",
         });
@@ -143,6 +143,7 @@ const authController = {
 
       res.status(200).json({
         isError: false,
+        user_id:savedRecruiter._id.toString(),
         token: token,
         message: `Recruiter registered successfully`,
         code: ROLES_LIST[savedRecruiter.role],

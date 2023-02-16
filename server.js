@@ -8,8 +8,7 @@ const adminRoutes = require("./routes/admin_routes");
 const companyRoutes = require("./routes/company_routes");
 const cookieparser = require("cookie-parser");
 let session = require("express-session");
-const commonMethods = require("./utils/common");
-const authMethods = require("./utils/auth");
+const { socketIO, socketUtils } = require("./utils/socketIO");
 
 //////////////////////////////////
 require("dotenv").config();
@@ -25,7 +24,7 @@ server.use(
 server.set("trust proxy", 1); // trust first proxy
 server.use(
   session({
-    secret: "keyboard cat",
+    secret: "218294xjaskand381mdjaye",
     resave: false,
     saveUninitialized: true,
     cookie: { secure: true, maxAge: 12000000 }, // 60min  12000000
@@ -60,7 +59,26 @@ server.use("/api/v1/admin", adminRoutes);
 server.use("/api/v1/company", companyRoutes);
 
 //////////////////////////////////
-// server.listen(PORT, (err) => {
-//     if(err) return console.log("Something went wrong")
-//     console.log(`Server running on port http://localhost:${PORT}/api/v1`);
+// socketIO.on("connection", (socket) => {
+//   socket.on("sample", (text) => {
+//     console.log(text);
+//     socket.broadcast.emit('receive-sample', text);
+//   });
 // });
+
+// session online users
+const onlineSessionUsers = [];
+module.exports = onlineSessionUsers;
+
+socketIO.on("connection", (socket) => {
+  socket.on("user-login", (data) => {
+    console.log(`${socket.id} connected to server`)
+    socketUtils.addUserToSession(data);
+  });
+
+  // on disconnect
+  socket.on("disconnect", () => {
+    console.log(`${socket.id} disconnected from server`);
+    socketUtils.removeUserFromSession(socket.id);
+  });
+});

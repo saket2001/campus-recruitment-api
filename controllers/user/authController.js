@@ -39,6 +39,7 @@ const authController = {
           roles: [ROLES_LIST[user["role"]]],
         });
         res.status(200).json({
+          user_id: user._id,
           isError: false,
           token: accessToken,
           refreshToken: refreshToken,
@@ -94,11 +95,11 @@ const authController = {
         id: response.SavedUser._id.toString(),
         roles: [ROLES_LIST[user.role]],
       });
-       const refreshToken = await authMethods.signRefreshJWT({
-         id: response.SavedUser._id.toString(),
-         roles: [ROLES_LIST[user.role]],
-       });
-      
+      const refreshToken = await authMethods.signRefreshJWT({
+        id: response.SavedUser._id.toString(),
+        roles: [ROLES_LIST[user.role]],
+      });
+
       // send email of account creation and verification process
       commonMethods.sendEmail({
         subject: "User Account Created!",
@@ -118,6 +119,7 @@ const authController = {
         isError: false,
         token: token,
         refreshToken,
+        user_id: response.SavedUser._id.toString(),
         message: "User registered successfully",
         code: ROLES_LIST[response.SavedUser["role"]],
         full_name: response.SavedUser["full_name"],
@@ -160,11 +162,11 @@ const authController = {
         id: user._id,
         roles: [ROLES_LIST[user["role"]]],
       });
-      
 
       res.status(200).json({
         isError: false,
         token: token,
+        user_id:user._id,
         message: "User signed in successfully",
         code: ROLES_LIST[user["role"]],
         full_name: user["full_name"],
@@ -221,6 +223,7 @@ const authController = {
         code: ROLES_LIST[response.SavedUser["role"]],
         full_name: response.SavedUser["full_name"],
         refreshToken,
+        user_id: response.SavedUser?._id.toString(),
       });
     } catch (err) {
       console.log({ err });

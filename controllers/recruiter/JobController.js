@@ -3,7 +3,13 @@ const group = require("../../models/group");
 const job = require("../../models/job");
 const user = require("../../models/user");
 const commonMethods = require("../../utils/common");
-const fs = require('fs');
+const fs = require("fs");
+const {
+  socketIoOperations,
+  socketUtils,
+  socketIO,
+} = require("../../utils/socketIO");
+const userDbOperations = require("../../db/user");
 // const jobDetails = require("../../models/jobDetails");
 // const userResumeData = require("../../models/userResumeData");
 //////////////////////////////
@@ -63,6 +69,21 @@ const JobController = {
               last_date: new Date(jobData.last_date).toDateString(),
             },
           });
+        });
+
+        // by notification system
+        socketIO.emit("new-job", {
+          title: "New job posting update",
+          body: `There is a new job opening from ${jobData.company_name} for the role of ${jobData.role} at ${jobData.location}. Do check out the job in your job section.`,
+          type: "alert-notification",
+        });
+        console.log("Notification Send");
+        await userDbOperations.saveNotification({
+          title: "New job posting update",
+          body: `There is a new job opening from ${jobData.company_name} for the role of ${jobData.role} at ${jobData.location}. Do check out the job in your job section.`,
+          type: "alert-notification",
+          sender_id: id,
+          receiver_id: "",
         });
 
         return res.status(200).json({
@@ -296,18 +317,39 @@ const JobController = {
           company_name: 1,
         });
 
-        commonMethods.sendEmail({
-          subject: `Job application update`,
-          to: userData?.email?.toString(),
-          viewName: "jobStatusChange",
-          context: {
-            role: jobData?.role,
-            company_name: jobData?.company_name,
-            time: new Date().toDateString(),
-            currStage: body.currStage,
-            newStage: body.newStage,
-          },
-        });
+        // by notification system
+        const receiver = socketUtils.GetUserFromSession(body.user_id);
+        // if user is online
+        if (receiver) {
+          socketIO.to(receiver?.socket_id).emit("application-update", {
+            title: "Job application update",
+            body: `Your application for ${jobData?.role} at ${jobData?.company_name} has been recently updated by the recruiter to ${body.newStage} stage`,
+            type: "alert-notification",
+          });
+          console.log("Notification Send");
+        } else {
+          console.log("User offline!");
+          await userDbOperations.saveNotification({
+            title: "Job application update",
+            body: `Your application for ${jobData?.role} at ${jobData?.company_name} has been recently updated by the recruiter to ${body.newStage} stage`,
+            type: "alert-notification",
+            sender_id: body.user_id,
+            receiver_id: id,
+          });
+        }
+        // by email
+        // commonMethods.sendEmail({
+        //   subject: `Job application update`,
+        //   to: userData?.email?.toString(),
+        //   viewName: "jobStatusChange",
+        //   context: {
+        //     role: jobData?.role,
+        //     company_name: jobData?.company_name,
+        //     time: new Date().toDateString(),
+        //     currStage: body.currStage,
+        //     newStage: body.newStage,
+        //   },
+        // });
 
         res.status(200).json({
           isError: false,
@@ -363,14 +405,19 @@ const JobController = {
       );
 
       // writing in file
-      fs.writeFile("./files/downloads/recruiter/output.txt", JSON.stringify(response), "utf8", function (err) {
-        if (err) {
-          console.log("An error occurred while writing JSON Object to File.");
-          return console.log(err);
-        }
+      fs.writeFile(
+        "./files/downloads/recruiter/output.txt",
+        JSON.stringify(response),
+        "utf8",
+        function (err) {
+          if (err) {
+            console.log("An error occurred while writing JSON Object to File.");
+            return console.log(err);
+          }
 
-        console.log("JSON file has been saved.");
-      });
+          console.log("JSON file has been saved.");
+        }
+      );
 
       return response
         ? res.status(200).json({
