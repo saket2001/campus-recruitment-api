@@ -437,6 +437,25 @@ const JobController = {
       });
     }
   },
+  dashboardAnalysis: async (req, res) => {
+    try {
+      const { id } = req.user;
+
+      const response = await recruiterDbOperations.dashboardAnalysis(id);
+
+      return response
+        ? res.status(200).json({ isError: false, data: response })
+        : res
+            .status(200)
+            .json({ isError: true, message: "Failed to get dashboard data" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
   // common route for all
   getJobs: async (req, res) => {
     try {

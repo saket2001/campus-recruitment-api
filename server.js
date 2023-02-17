@@ -72,13 +72,13 @@ module.exports = onlineSessionUsers;
 
 socketIO.on("connection", (socket) => {
   socket.on("user-login", (data) => {
-    console.log(`${socket.id} connected to server`)
+    // console.log(`${socket.id} connected to server`)
     socketUtils.addUserToSession(data);
   });
 
   // on disconnect
   socket.on("disconnect", () => {
-    console.log(`${socket.id} disconnected from server`);
+    // console.log(`${socket.id} disconnected from server`);
     socketUtils.removeUserFromSession(socket.id);
   });
 });

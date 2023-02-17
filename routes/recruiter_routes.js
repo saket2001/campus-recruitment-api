@@ -42,6 +42,14 @@ recruiter_routes.post(
   recruiterControllers.authController.recruiterSignUp
 );
 
+// dashboard
+recruiter_routes.get(
+  "/dashboard-analysis",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.recruiter),
+  recruiterControllers.JobController.dashboardAnalysis
+);
+
 // recruiter job specific
 recruiter_routes.post(
   "/create-job",

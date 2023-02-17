@@ -305,6 +305,72 @@ const recruiterDbOperations = {
       return false;
     }
   },
+  dashboardAnalysis: async (id) => {
+    try {
+      const data = {
+        totalJobs: 0,
+        AvgResponses: 0,
+        jobResponses: {},
+        jobsData: {},
+        currentPosts: [],
+      };
+
+      // total jobs created
+      const allJobs = await job.find(
+        { recruiter_id: id },
+        { _id: 1, role: 1, company_name: 1 }
+      );
+      data["totalJobs"] = allJobs?.length;
+
+      // total avg response range
+      const jobDetailsData = await jobDetails.find(
+        { recruiter_id: id },
+        { job_stages: 1 }
+      );
+      const jobResponses = [];
+      jobDetailsData?.forEach((job) => {
+        const applicants = job?.job_stages.find((d) => d.name === "applicants");
+        jobResponses.push(applicants?.data?.length);
+      });
+
+      // job responses
+      const jobResponsesName = allJobs?.map(
+        (j) => `${j.role}`
+      );
+      data["jobResponses"] = {
+        labels: jobResponsesName,
+        datasets: [
+          {
+            label: "Responses per job",
+            data: jobResponses,
+            backgroundColor: "rgba(255, 99, 132, 0.5)",
+          },
+        ],
+      };
+
+      const sorted = [...jobResponses]?.sort((a, b) => a - b);
+      data["AvgResponses"] = `${sorted.at(0)}-${sorted.at(-1)}`;
+
+      // single job responses
+
+      // current posts
+      const date = new Date();
+      const today = `${date.getFullYear()}-${
+        date.getMonth() + 1 < 10
+          ? `0${date.getMonth() + 1}`
+          : date.getMonth() + 1
+      }-${date.getDate()}`;
+      data["currentPosts"] = await job.find({
+        recruiter_id: id,
+        last_date: { $gte: today },
+      });
+
+      return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
   // common routes
   getJobs: async () => {
     try {
