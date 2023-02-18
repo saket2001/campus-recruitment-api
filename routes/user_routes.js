@@ -70,6 +70,14 @@ user_router.get(
   userControllers.authController.userEmailVerification
 );
 
+// user dashboard
+user_router.get(
+  "/dashboard-analysis",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.jobController.dashboardAnalysis
+);
+
 // user profile route
 user_router.get(
   "/profile",

@@ -134,12 +134,33 @@ const JobController = {
       });
     }
   },
+  dashboardAnalysis: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const response = await userDbOperations.dashboardAnalysis(id);
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            data: response,
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to get dashboard analysis!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
   // common routes
   getNotifications: async (req, res) => {
     try {
       const { id } = req.user;
-      const response = await userDbOperations
-        .getNotifications(id)
+      const response = await userDbOperations.getNotifications(id);
 
       return response
         ? res.status(200).json({
@@ -161,7 +182,9 @@ const JobController = {
   deleteNotification: async (req, res) => {
     try {
       const { notification_id } = req.params;
-      const response = await userDbOperations.deleteNotification(notification_id);
+      const response = await userDbOperations.deleteNotification(
+        notification_id
+      );
 
       return response
         ? res.status(200).json({

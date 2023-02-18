@@ -451,6 +451,52 @@ const userDbOperations = {
     }
   },
 
+  // dashboard
+  dashboardAnalysis: async (user_id) => {
+    try {
+      const data = {
+        totalApplied: 0,
+        appliedJobs: [],
+        newJobs: [],
+      };
+
+      // total applied and applied jobs
+      const appliedJobsIds = await user.findById(user_id, {
+        applied_to_jobs: 1,
+      });
+
+      const appliedJobIds = appliedJobsIds?.applied_to_jobs?.map(
+        (d) => d.job_id
+      );
+      data["appliedJobs"] = await job.find({
+        _id: { $in: appliedJobIds },
+      });
+      data["totalApplied"] = data["appliedJobs"]?.length;
+
+      // new jobs
+      const date = new Date();
+      const today = `${date.getFullYear()}-${
+        date.getMonth() + 1 < 10
+          ? `0${date.getMonth() + 1}`
+          : date.getMonth() + 1
+      }-${date.getDate()}`;
+      data["newJobs"] = await job.find({
+        _id: {
+          $not: { $in: appliedJobIds },
+        },
+        is_active: true,
+        last_date: { $gte: today },
+      });
+      // console.log(jobIdsToApply)
+
+      // console.log(data)
+      return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+
   // group routes
   applyToGroup: async (data, user_id) => {
     try {
