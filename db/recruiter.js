@@ -311,7 +311,7 @@ const recruiterDbOperations = {
         totalJobs: 0,
         AvgResponses: 0,
         jobResponses: {},
-        jobsData: {},
+        allJobsCount: {},
         currentPosts: [],
       };
 
@@ -334,16 +334,14 @@ const recruiterDbOperations = {
       });
 
       // job responses
-      const jobResponsesName = allJobs?.map(
-        (j) => `${j.role}`
-      );
+      const jobResponsesName = allJobs?.map((j) => `${j.role}`);
       data["jobResponses"] = {
         labels: jobResponsesName,
         datasets: [
           {
             label: "Responses per job",
             data: jobResponses,
-            backgroundColor: "rgba(255, 99, 132, 0.5)",
+            backgroundColor: "rgba(56, 55, 221, 0.8)",
           },
         ],
       };
@@ -351,7 +349,27 @@ const recruiterDbOperations = {
       const sorted = [...jobResponses]?.sort((a, b) => a - b);
       data["AvgResponses"] = `${sorted.at(0)}-${sorted.at(-1)}`;
 
-      // single job responses
+      // count of all job roles
+      const allJobRoles = await job.find({}, { role: 1 });
+      const labels = allJobRoles.map((d) => d.role);
+      let labelCount = {};
+      labels.forEach((role) => {
+        console.log({role})
+        if (labelCount.hasOwnProperty(role))
+          labelCount[role] = labelCount[role]++;
+        else
+          labelCount[role] = 1;
+      })
+      data["allJobsCount"] = {
+        labels: labels,
+        datasets: [
+          {
+            label: "Role count",
+            data: Object.values(labelCount),
+            backgroundColor:[],
+          },
+        ],
+      };
 
       // current posts
       const date = new Date();
