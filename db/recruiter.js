@@ -6,6 +6,7 @@ const jobDetails = require("../models/jobDetails");
 const userResumeData = require("../models/userResumeData");
 const userResume = require("../models/userResume");
 const { default: mongoose } = require("mongoose");
+const user = require("../models/user");
 
 ///////////////////////////
 
@@ -199,12 +200,24 @@ const recruiterDbOperations = {
   },
   getJobEntries: async (id, view, dir = "asc") => {
     try {
-      let usersData,
-        userIDs = [];
+      let returnData = {
+        usersData: null,
+        usersStatus: null,
+        job_info: null,
+      };
+      let userIDs = [];
+
+      // job info
+      returnData["job_info"] = await job.findById(id, {
+        role: 1,
+        company_name: 1,
+        created_at:1,
+      });
+
+      // const recruiter_name=await recruiter.findById()
 
       // for now applicants
       const jobDetailsData = await jobDetails.findOne({ job_id: id });
-
       if (!jobDetailsData) return 1;
 
       const data = jobDetailsData?.job_stages?.find((d) => d.name === view);
@@ -218,11 +231,18 @@ const recruiterDbOperations = {
       });
 
       // converting ids to objects id
-      usersData = await userResumeData.find(
+      returnData["usersData"] = await userResumeData.find(
         { user_id: { $in: obj_ids } },
         { basic_details: 1, education: 1, user_id: 1 }
       );
-      return usersData;
+      returnData["usersStatus"] = await user.find(
+        { _id: { $in: obj_ids } },
+        {
+          current_status: 1,
+        }
+      );
+
+      return returnData;
     } catch (err) {
       console.log(err);
       return false;
@@ -354,19 +374,18 @@ const recruiterDbOperations = {
       const labels = allJobRoles.map((d) => d.role);
       let labelCount = {};
       labels.forEach((role) => {
-        console.log({role})
+        console.log({ role });
         if (labelCount.hasOwnProperty(role))
           labelCount[role] = labelCount[role]++;
-        else
-          labelCount[role] = 1;
-      })
+        else labelCount[role] = 1;
+      });
       data["allJobsCount"] = {
         labels: labels,
         datasets: [
           {
             label: "Role count",
             data: Object.values(labelCount),
-            backgroundColor:[],
+            backgroundColor: [],
           },
         ],
       };

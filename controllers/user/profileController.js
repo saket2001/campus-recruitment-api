@@ -87,6 +87,13 @@ const profileController = {
           isError: true,
           message: "Resume Data not found for given user id!",
         });
+      
+      if (fileName === 2) {
+         return res.status(200).json({
+           isError: true,
+           message: "You are not authorized to access this resume file!",
+         });
+      }
 
       // sending file data
       fs.readFile(fileName, (err, data) => {

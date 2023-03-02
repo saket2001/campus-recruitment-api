@@ -41,6 +41,10 @@ const userSchema = new Schema({
     type: mongoose.Schema.Types.Date,
     required: true,
   },
+  current_status: {
+    type: String,
+    default:"Not placed",
+  },
   is_verified: {
     type: Boolean,
     required: true,

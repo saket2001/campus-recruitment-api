@@ -90,6 +90,7 @@ const userResumeData = new schema({
     ],
   },
   created_at: mongoose.Schema.Types.Date,
+  last_edited:mongoose.Schema.Types.Date,
 });
 
 module.exports = mongoose.model("userResumeData", userResumeData);

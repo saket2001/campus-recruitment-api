@@ -173,7 +173,6 @@ const userDbOperations = {
       );
 
       data["resume_file"] = resumeData.resume_file;
-
       if (data === [] || !data) return false;
 
       return data;
@@ -222,8 +221,12 @@ const userDbOperations = {
   },
   getUserResume: async (id) => {
     try {
-      const data = await userResume.find({ user_id: id }, { resume_file: 1 });
-      // console.log(data);
+      const data = await userResume.find(
+        { user_id: id },
+        { resume_file: 1, _id: 1 }
+      );
+      if (data?._id !== id) return 2;
+      
       if (data === [] || !data) return false;
       return data[0].resume_file;
     } catch {
