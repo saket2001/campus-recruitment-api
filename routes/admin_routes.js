@@ -59,5 +59,42 @@ admin_routes.put(
   adminController.noticeController.editNotice
 );
 
+// manage users
+admin_routes.get(
+  "/get-candidates/:year",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin, ROLES_LIST.recruiter),
+  adminController.manageController.getAllUsers
+);
+admin_routes.get(
+  "/get-recruiters/:year",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.getAllRecruiters
+);
+admin_routes.get(
+  "/get-companies/:year",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.getAllCompanies
+);
+admin_routes.delete(
+  "/remove-candidate/:user_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.deleteUser
+);
+admin_routes.delete(
+  "/remove-recruiter/:user_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.deleteRecruiter
+);
+admin_routes.delete(
+  "/remove-company/:company_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.deleteCompany
+);
 
 module.exports = admin_routes;

@@ -4,6 +4,10 @@ const group = require("../models/group");
 const user = require("../models/user");
 const notice = require("../models/notice");
 const { randomUUID } = require("crypto");
+const recruiter = require("../models/recruiter");
+const companies = require("../models/company");
+const company = require("../models/company");
+
 ///////////////////////////
 
 const adminDbOperations = {
@@ -191,6 +195,136 @@ const adminDbOperations = {
       return data;
     } catch (err) {
       console.log(err);
+      return false;
+    }
+  },
+  getAllUsers: async (year) => {
+    try {
+      // console.log(+year+1);
+      const currYear = new Date(year);
+      const allUsers = await user.find(
+        {
+          created_at: { $gte: currYear },
+        },
+        {
+          password: 0,
+          role: 0,
+          saved_jobs: 0,
+          applied_to_group: 0,
+          applied_to_jobs: 0,
+        }
+      );
+
+      // manually filtering on year
+      const filteredUsers = allUsers.filter(
+        (u) => new Date(u.created_at).getFullYear() === +year
+      );
+      return filteredUsers;
+    } catch {
+      return false;
+    }
+  },
+  getAllRecruiters: async (year) => {
+    try {
+      const currYear = new Date(year);
+      const allRecruiters = await recruiter.find(
+        {
+          created_at: { $gte: currYear },
+        },
+        {
+          password: 0,
+          role: 0,
+        }
+      );
+
+      // manually filtering on year
+      const data = allRecruiters.filter(
+        (u) => new Date(u.created_at).getFullYear() === +year
+      );
+
+      return data;
+    } catch {
+      return false;
+    }
+  },
+  // getAllRecruitersAndCompanies: async (year) => {
+  //   try {
+  //     const data = {
+  //       recruiters: [],
+  //       companies: [],
+  //     };
+  //     const currYear = new Date(year);
+  //     const allRecruiters = await recruiter.find(
+  //       {
+  //         created_at: { $gte: currYear },
+  //       },
+  //       {
+  //         password: 0,
+  //         role: 0,
+  //       }
+  //     );
+  //     const allCompanies = await companies.find(
+  //       {
+  //         created_at: { $gte: currYear },
+  //       }
+  //     );
+
+  //     // manually filtering on year
+  //     data['recruiters'] = allRecruiters.filter(
+  //       (u) => new Date(u.created_at).getFullYear() === +year
+  //     );
+  //     data["companies"] = allCompanies.filter(
+  //       (u) => new Date(u.created_at).getFullYear() === +year
+  //     );
+
+  //     return data;
+  //   } catch {
+  //     return false;
+  //   }
+  // },
+  getAllCompanies: async (year) => {
+    try {
+      const currYear = new Date(year);
+      const allCompanies = await companies.find(
+        {
+          created_at: { $gte: currYear },
+        }
+      );
+
+      // manually filtering on year
+      const data = allCompanies.filter(
+        (u) => new Date(u.created_at).getFullYear() === +year
+      );
+
+      return data;
+    } catch {
+      return false;
+    }
+  },
+  deleteUser: async (user_id) => {
+    try {
+      if (!user_id) return 1;
+      const res = await user.findByIdAndDelete(user_id);
+      return res ? true : false;
+    } catch {
+      return false;
+    }
+  },
+  deleteRecruiter: async (user_id) => {
+    try {
+     if (!user_id) return 1;
+     const res = await recruiter.findByIdAndDelete(user_id);
+     return res ? true : false;
+    } catch {
+      return false;
+    }
+  },
+  deleteCompany: async (company_id) => {
+    try {
+     if (!company_id) return 1;
+     const res = await company.findByIdAndDelete(company_id);
+     return res ? true : false;
+    } catch {
       return false;
     }
   },
