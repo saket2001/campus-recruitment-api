@@ -96,5 +96,17 @@ admin_routes.delete(
   authMethods.verifyUser(ROLES_LIST.admin),
   adminController.manageController.deleteCompany
 );
+admin_routes.post(
+  "/verify-company/:company_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.toggleCompanyVerification
+);
+admin_routes.post(
+  "/verify-recruiter/:user_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.toggleRecruiterVerification
+);
 
 module.exports = admin_routes;

@@ -5,7 +5,6 @@ const user = require("../models/user");
 const notice = require("../models/notice");
 const { randomUUID } = require("crypto");
 const recruiter = require("../models/recruiter");
-const companies = require("../models/company");
 const company = require("../models/company");
 
 ///////////////////////////
@@ -247,49 +246,12 @@ const adminDbOperations = {
       return false;
     }
   },
-  // getAllRecruitersAndCompanies: async (year) => {
-  //   try {
-  //     const data = {
-  //       recruiters: [],
-  //       companies: [],
-  //     };
-  //     const currYear = new Date(year);
-  //     const allRecruiters = await recruiter.find(
-  //       {
-  //         created_at: { $gte: currYear },
-  //       },
-  //       {
-  //         password: 0,
-  //         role: 0,
-  //       }
-  //     );
-  //     const allCompanies = await companies.find(
-  //       {
-  //         created_at: { $gte: currYear },
-  //       }
-  //     );
-
-  //     // manually filtering on year
-  //     data['recruiters'] = allRecruiters.filter(
-  //       (u) => new Date(u.created_at).getFullYear() === +year
-  //     );
-  //     data["companies"] = allCompanies.filter(
-  //       (u) => new Date(u.created_at).getFullYear() === +year
-  //     );
-
-  //     return data;
-  //   } catch {
-  //     return false;
-  //   }
-  // },
   getAllCompanies: async (year) => {
     try {
       const currYear = new Date(year);
-      const allCompanies = await companies.find(
-        {
-          created_at: { $gte: currYear },
-        }
-      );
+      const allCompanies = await company.find({
+        created_at: { $gte: currYear },
+      });
 
       // manually filtering on year
       const data = allCompanies.filter(
@@ -312,18 +274,42 @@ const adminDbOperations = {
   },
   deleteRecruiter: async (user_id) => {
     try {
-     if (!user_id) return 1;
-     const res = await recruiter.findByIdAndDelete(user_id);
-     return res ? true : false;
+      if (!user_id) return 1;
+      const res = await recruiter.findByIdAndDelete(user_id);
+      return res ? true : false;
     } catch {
       return false;
     }
   },
   deleteCompany: async (company_id) => {
     try {
-     if (!company_id) return 1;
-     const res = await company.findByIdAndDelete(company_id);
-     return res ? true : false;
+      if (!company_id) return 1;
+      const res = await company.findByIdAndDelete(company_id);
+      return res ? true : false;
+    } catch {
+      return false;
+    }
+  },
+  toggleCompanyVerification: async (company_id, data) => {
+    try {
+      if (!company_id) return 1;
+      const res = await company.findByIdAndUpdate(company_id, {
+        isVerified: data,
+      });
+
+      return res ? true : false;
+    } catch {
+      return false;
+    }
+  },
+  toggleRecruiterVerification: async (user_id, data) => {
+    try {
+      if (!user_id) return 1;
+      const res = await recruiter.findByIdAndUpdate(user_id, {
+        isVerified: data,
+      });
+
+      return res ? true : false;
     } catch {
       return false;
     }
