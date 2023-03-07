@@ -292,6 +292,28 @@ const manageController = {
       });
     }
   },
+  dashboardAnalysis: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const response = await adminDbOperations.dashboardAnalysis(id);
+
+      return response
+        ? res.status(200).json({
+            isError: true,
+            data: response,
+          })
+        : res.status(500).json({
+            isError: true,
+            message: "Enable to get dashboard statistics",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on the server!",
+      });
+    }
+  },
 };
 
 module.exports = manageController;

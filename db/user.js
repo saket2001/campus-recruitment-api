@@ -226,7 +226,7 @@ const userDbOperations = {
         { resume_file: 1, _id: 1 }
       );
       if (data?._id !== id) return 2;
-      
+
       if (data === [] || !data) return false;
       return data[0].resume_file;
     } catch {
@@ -458,9 +458,10 @@ const userDbOperations = {
   dashboardAnalysis: async (user_id) => {
     try {
       const data = {
-        totalApplied: 0,
         appliedJobs: [],
         newJobs: [],
+        prevYearPlacementsPerCompany: { labels: [], datasets: [{ data: [] }] },
+        prevYearRoleDemand: { labels: [], datasets: [{ data: [] }] },
       };
 
       // total applied and applied jobs
@@ -474,7 +475,6 @@ const userDbOperations = {
       data["appliedJobs"] = await job.find({
         _id: { $in: appliedJobIds },
       });
-      data["totalApplied"] = data["appliedJobs"]?.length;
 
       // new jobs
       const date = new Date();
@@ -483,6 +483,7 @@ const userDbOperations = {
           ? `0${date.getMonth() + 1}`
           : date.getMonth() + 1
       }-${date.getDate()}`;
+
       data["newJobs"] = await job.find({
         _id: {
           $not: { $in: appliedJobIds },
@@ -490,9 +491,74 @@ const userDbOperations = {
         is_active: true,
         last_date: { $gte: today },
       });
-      // console.log(jobIdsToApply)
 
-      // console.log(data)
+      // prevYearRoleDemand
+      // shows which roles where in great numbers in last year
+      let labelNames = [];
+      let nums = [];
+      let temp = [];
+      // getting prev year roles
+      const year = new Date().getFullYear();
+      temp = await job.find(
+        {
+          $and: [
+            { created_at: { $gte: new Date(year - 1 + "") } },
+            { created_at: { $lt: new Date(year + 1 + "") } },
+          ],
+        },
+        { company_name: 1, role: 1, _id: 1 }
+      );
+      const allRoles = temp?.map((j) => j.role.toLowerCase());
+      labelNames = [...new Set(allRoles)];
+      nums.length = labelNames.length;
+      nums.fill(0);
+
+      allRoles.forEach((role) => {
+        const i = labelNames?.indexOf(role);
+        nums[i] = nums[i] + 1;
+      });
+
+      data["prevYearRoleDemand"]["labels"] = labelNames;
+      data["prevYearRoleDemand"]["datasets"][0]["data"] = nums;
+
+      // showing previous company placements stats
+      const prevJobs = await job.find(
+        {
+          $and: [
+            { created_at: { $gte: new Date(year - 1 + "") } },
+            { created_at: { $lt: new Date(year + "") } },
+          ],
+        },
+        { _id: 1, company_name: 1, role: 1 }
+      );
+
+      labelNames = nums = [];
+      labelNames = prevJobs.map((d) => d.company_name);
+      labelNames = [...new Set(labelNames)];
+      nums.length = labelNames.length;
+      nums.fill(0);
+
+      // getting ids of previous jobs to fetch other details
+      let jobIds = prevJobs.map((d) => d._id);
+      // converting user ids into object id schema
+      jobIds = jobIds.map(function (id) {
+        return mongoose.Types.ObjectId(id);
+      });
+      let selections = await jobDetails.find(
+        { job_id: { $in: jobIds } },
+        { job_stages: 1 }
+      );
+      // getting selected for jobs array data and then counting no of students selected
+      temp = [];
+      selections?.forEach((jobs) => {
+        const { data } = jobs.job_stages.find(
+          (stage) => stage.name === "selected_for_jobs"
+        );
+        temp.push(data?.length);
+      });
+      data["prevYearPlacementsPerCompany"]["labels"] = labelNames;
+      data["prevYearPlacementsPerCompany"]["datasets"][0]["data"] = temp;
+
       return data;
     } catch (err) {
       console.log(err);

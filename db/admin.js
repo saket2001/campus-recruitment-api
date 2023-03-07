@@ -6,7 +6,10 @@ const notice = require("../models/notice");
 const { randomUUID } = require("crypto");
 const recruiter = require("../models/recruiter");
 const company = require("../models/company");
-
+const placedStudentsHistory = require("../models/placedStudentsHistory");
+const jobDetails = require("../models/jobDetails");
+const job = require("../models/job");
+const mongoose = require("mongoose");
 ///////////////////////////
 
 const adminDbOperations = {
@@ -197,6 +200,7 @@ const adminDbOperations = {
       return false;
     }
   },
+  // manage page
   getAllUsers: async (year) => {
     try {
       // console.log(+year+1);
@@ -311,6 +315,111 @@ const adminDbOperations = {
 
       return res ? true : false;
     } catch {
+      return false;
+    }
+  },
+  // dashboard
+  dashboardAnalysis: async (id) => {
+    try {
+      const data = {
+        totalStudents: 0,
+        totalRecruiters: 0,
+        totalCompanies: 0,
+        totalPlacedStudents: 0,
+        studentsPerBranch: { labels: [], datasets: [{ data: [] }] },
+        prevYearPlacementsPerCompany: { labels: [], datasets: [{ data: [] }] },
+      };
+      let temp = 0;
+      // students
+      temp = await user.find(
+        { isVerified: true },
+        { _id: 1, college_branch: 1, current_status: 1 }
+      );
+      data["totalStudents"] = temp.length;
+
+      // students per branch graph
+      let branchNames = [];
+      let nums = [];
+      branchNames = temp?.map((u) => {
+        if (u?.college_branch) return u?.college_branch;
+      });
+      branchNames = [...new Set(branchNames)];
+      nums.length = branchNames.length;
+      nums.fill(0);
+
+      temp.forEach((u) => {
+        const i = branchNames?.indexOf(u?.college_branch);
+        nums[i] = nums[i] + 1;
+
+        // placed students
+        if (u?.current_status === "placed") {
+          data["totalPlacedStudents"] = data["totalPlacedStudents"] + 1;
+        }
+      });
+
+      data["studentsPerBranch"]["labels"] = branchNames;
+      data["studentsPerBranch"]["datasets"][0]["data"] = nums;
+
+      // placed students
+      // temp = await placedStudentsHistory.find(
+      //   { created_at: { $gte: new Date().getFullYear() } },
+      //   { selected_candidates: 1 }
+      // );
+      // console.log(temp);
+      // data["totalPlacedStudents"] = temp?.length;
+
+      // recruiters
+      temp = await recruiter.find({ isVerified: true }, { _id: 1 });
+      data["totalRecruiters"] = temp.length;
+
+      // companies
+      temp = await company.find({ isVerified: true }, { _id: 1 });
+      data["totalCompanies"] = temp.length;
+
+      // previous placements per company
+      const year = new Date().getFullYear();
+      const prevYear = new Date().getFullYear() - 2;
+      // getting all companies that came 2 years back
+      const prevJobs = await job.find(
+        {
+          $and: [
+            { created_at: { $gte: new Date(prevYear + "") } },
+            { created_at: { $lt: new Date(year + "") } },
+          ],
+        },
+        { _id: 1, company_name: 1, role: 1 }
+      );
+
+      branchNames = nums = [];
+      branchNames = prevJobs.map((d) => d.company_name);
+      branchNames = [...new Set(branchNames)];
+      nums.length = branchNames.length;
+      nums.fill(0);
+
+      // getting ids of previous jobs to fetch other details
+      let jobIds = prevJobs.map((d) => d._id);
+      // converting user ids into object id schema
+      jobIds = jobIds.map(function (id) {
+        return mongoose.Types.ObjectId(id);
+      });
+      let selections = await jobDetails.find(
+        { job_id: { $in: jobIds } },
+        { job_stages: 1 }
+      );
+      // getting selected for jobs array data and then counting no of students selected
+      temp = [];
+      selections?.forEach((jobs) => {
+        const { data } = jobs.job_stages.find(
+          (stage) => stage.name === "selected_for_jobs"
+        );
+        temp.push(data?.length);
+      });
+      data["prevYearPlacementsPerCompany"]["labels"] = branchNames;
+      data["prevYearPlacementsPerCompany"]["datasets"][0]["data"] = temp;
+
+      return data;
+    } catch (err) {
+      console.log(err);
       return false;
     }
   },

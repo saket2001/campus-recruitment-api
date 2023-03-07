@@ -109,4 +109,12 @@ admin_routes.post(
   adminController.manageController.toggleRecruiterVerification
 );
 
+// dashboard
+admin_routes.get(
+  "/admin-dashboard",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.manageController.dashboardAnalysis
+);
+
 module.exports = admin_routes;
