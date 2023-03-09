@@ -161,6 +161,12 @@ user_router.get(
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.getAppliedJobs
 );
+user_router.get(
+  "/get-application-status/:job_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.jobController.getApplicationStatus
+);
 
 // group routes 
 user_router.get(

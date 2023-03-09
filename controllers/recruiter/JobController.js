@@ -248,6 +248,7 @@ const JobController = {
       });
     }
   },
+  // manage
   getJobEntries: async (req, res) => {
     try {
       const { job_id, view } = req.params;
@@ -428,7 +429,6 @@ const JobController = {
             isError: true,
             message: "Failed to get filters!",
           });
-      return res.status(200);
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -437,6 +437,33 @@ const JobController = {
       });
     }
   },
+  updateCurrentStage: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const { job_id,stage } = req.body;
+      const response = await recruiterDbOperations.updateCurrentStage(
+        job_id,
+        stage
+      );
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "Updated current round successfully",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to update current round!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  // dashboard
   dashboardAnalysis: async (req, res) => {
     try {
       const { id } = req.user;

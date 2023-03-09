@@ -304,7 +304,6 @@ const userDbOperations = {
     try {
       // check if job exists
       const jobDetailsData = await jobDetails.findOne({ job_id: job_id });
-      console.log(jobDetailsData);
       const jobDetailsDataApplicants = jobDetailsData?.job_stages?.find(
         (d) => d.name === "applicants"
       );
@@ -329,6 +328,7 @@ const userDbOperations = {
         if (d.name === "applicants") {
           d?.data.push({
             user_id: user_id,
+            created_at: new Date(),
           });
         }
       });
@@ -348,6 +348,7 @@ const userDbOperations = {
       // only job id should be stored
       userData.applied_to_jobs.push({
         job_id: job_id,
+        created_at: new Date(),
       });
 
       await user.findByIdAndUpdate(user_id, {
@@ -453,7 +454,85 @@ const userDbOperations = {
       return false;
     }
   },
+  getApplicationStatus: async (user_id, job_id) => {
+    try {
+      // 1. user detail like name,email,id resume,application date
+      // 2. job details role, his status
+      // 3. other details like Phone Interview In-Person Interview Offer Made Offer Accepted
+      const data = {
+        userDetails: {},
+        jobDetails: {},
+        roundDetails: {},
+        userResume: "",
+        userStatus: "",
+      };
+      let temp = [];
 
+      // getting user data
+      temp = await user.findById(user_id, {
+        full_name: 1,
+        email: 1,
+        college_name: 1,
+        college_branch: 1,
+        applied_to_jobs: 1,
+      });
+
+      // checking if the user has applied to this job or not
+      const hasUserApplied = temp.applied_to_jobs.find(
+        (u) => u.job_id === job_id
+      );
+      console.log(hasUserApplied);
+      if (!hasUserApplied) return 1;
+
+      data["userDetails"] = temp;
+      // getting user resume
+      temp = await userResume.findOne({ user_id: user_id }, { resume_file: 1 });
+      data["userResume"] = temp.resume_file;
+
+      // getting job details
+      temp = await job.findById(job_id, {
+        role: 1,
+        company_name: 1,
+        current_stage: 1,
+      });
+      const curr_stage = temp.current_stage;
+      data["jobDetails"] = temp;
+
+      // getting that current round entries
+      temp = await jobDetails.findOne({ job_id: job_id }, { job_stages: 1 });
+      let entries = temp.job_stages.find((d) => d.name === curr_stage);
+
+      // getting all the entry users data
+      const ids = entries.data.map((u) => u.user_id);
+      // converting it to object ids
+      const obj_ids = ids.map(function (id) {
+        return mongoose.Types.ObjectId(id);
+      });
+      // fetching users
+      entries = await user.find(
+        { _id: { $in: obj_ids } },
+        {
+          full_name: 1,
+          email: 1,
+          college_name: 1,
+          college_branch: 1,
+        }
+      );
+
+      data["roundDetails"] = entries;
+      // check if the req made user is in the current round
+      // if not then send failed
+      const isUserInCurrRound = entries.find(
+        (u) => u.email === data["userDetails"].email
+      );
+      data["userStatus"] = isUserInCurrRound;
+
+      return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
   // dashboard
   dashboardAnalysis: async (user_id) => {
     try {

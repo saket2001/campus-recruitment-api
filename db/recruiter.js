@@ -211,7 +211,8 @@ const recruiterDbOperations = {
       returnData["job_info"] = await job.findById(id, {
         role: 1,
         company_name: 1,
-        created_at:1,
+        created_at: 1,
+        current_stage:1,
       });
 
       // const recruiter_name=await recruiter.findById()
@@ -370,13 +371,12 @@ const recruiterDbOperations = {
       data["AvgResponses"] = `${sorted.at(0)}-${sorted.at(-1)}`;
 
       // count of all job roles
-      const allJobRoles = await job.find({}, { role: 1 });
-      const labels = allJobRoles.map((d) => d.role);
+      const allJobRoles = await job.find({is_active:true}, { role: 1 });
+      let labels = allJobRoles.map((d) => d.role.toLowerCase());
       let labelCount = {};
       labels.forEach((role) => {
-        console.log({ role });
         if (labelCount.hasOwnProperty(role))
-          labelCount[role] = labelCount[role]++;
+          labelCount[role] = labelCount[role]+1;
         else labelCount[role] = 1;
       });
       data["allJobsCount"] = {
@@ -403,6 +403,24 @@ const recruiterDbOperations = {
       });
 
       return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  updateCurrentStage: async (job_id, newStage) => {
+    try {
+      const jobData = await job.findByIdAndUpdate(job_id, {
+        current_stage: newStage,
+      });
+      await jobDetails.findOneAndUpdate(
+        { job_id: job_id },
+        { last_edited: new Date() }
+      );
+
+      if (!jobData || jobData?.length === 0) return 1;
+
+      return true;
     } catch (err) {
       console.log(err);
       return false;

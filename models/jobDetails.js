@@ -12,6 +12,9 @@ const JobDetailsSchema = mongoose.Schema({
     ref: "recruiter",
   },
   job_stages: [],
+  last_edited: {
+    type:Date,
+  },
 });
 
 module.exports = mongoose.model('JobDetails', JobDetailsSchema);

@@ -134,6 +134,40 @@ const JobController = {
       });
     }
   },
+  getApplicationStatus: async (req, res) => {
+    try {
+      const { id: user_id } = req.user;
+      const { job_id } = req.params;
+      const response = await userDbOperations.getApplicationStatus(
+        user_id,
+        job_id
+      );
+
+      if (response === 1)
+        return res.status(200).json({
+          isError: false,
+          message: "You have not applied to the following job!",
+          data: null,
+        });
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            data: response,
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to your application status! Try again",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  // dashboard
   dashboardAnalysis: async (req, res) => {
     try {
       const { id } = req.user;
@@ -156,6 +190,7 @@ const JobController = {
       });
     }
   },
+
   // common routes
   getNotifications: async (req, res) => {
     try {

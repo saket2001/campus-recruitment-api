@@ -114,11 +114,18 @@ recruiter_routes.delete(
   authMethods.verifyUser(ROLES_LIST.recruiter, ROLES_LIST.admin),
   recruiterControllers.JobController.removeCandidate
 );
+// TODO Not working
 recruiter_routes.get(
   "/download-job-data/:job_id/:view",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.recruiter, ROLES_LIST.admin),
   recruiterControllers.JobController.downloadJobApplicantsData
+);
+recruiter_routes.post(
+  "/change-job-round-status",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.recruiter, ROLES_LIST.admin),
+  recruiterControllers.JobController.updateCurrentStage
 );
 
 
