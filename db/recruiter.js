@@ -7,7 +7,7 @@ const userResumeData = require("../models/userResumeData");
 const userResume = require("../models/userResume");
 const { default: mongoose } = require("mongoose");
 const user = require("../models/user");
-
+const jobRoundDetails = require('../models/jobRoundDetails');
 ///////////////////////////
 
 const recruiterDbOperations = {
@@ -105,7 +105,7 @@ const recruiterDbOperations = {
   },
   uploadFile: async (id, data) => {
     try {
-      const jobData = await job.findByIdAndUpdate(id, { filePath: data });
+      const jobData = await job.findByIdAndUpdate(id, { job_details_file: data });
       console.log(jobData);
 
       return true;
@@ -189,9 +189,8 @@ const recruiterDbOperations = {
   getJobAndJobDetails: async (id) => {
     try {
       // get job
-      const data = await job.find({ recruiter_id: id });
-      // get job details i.e applicants etc
-      // data['job_details'] = await jobDetails.find({ recruiter_id: id })
+      const data = await job.find({ recruiter_id: id }).sort({created_at:-1});
+      
       return data;
     } catch (err) {
       console.log(err);
@@ -234,7 +233,7 @@ const recruiterDbOperations = {
       // converting ids to objects id
       returnData["usersData"] = await userResumeData.find(
         { user_id: { $in: obj_ids } },
-        { basic_details: 1, education: 1, user_id: 1 }
+        { basic_details: 1, education: 1, user_id: 1,skills:1 }
       );
       returnData["usersStatus"] = await user.find(
         { _id: { $in: obj_ids } },
@@ -426,6 +425,17 @@ const recruiterDbOperations = {
       return false;
     }
   },
+  AddJobRoundDetails: async (rec_id, data) => {
+    try {
+      data["recruiter_id"] = rec_id;
+      const newDetails = await jobRoundDetails(data);
+      await newDetails.save();
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
   // common routes
   getJobs: async () => {
     try {
@@ -449,6 +459,9 @@ const recruiterDbOperations = {
       data["job_details"] = await temp[0]["job_stages"]?.find((d) => {
         if (d.name === "applicants") return d["data"];
       });
+
+      // job description file
+
 
       return data;
     } catch (err) {

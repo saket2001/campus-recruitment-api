@@ -440,7 +440,7 @@ const JobController = {
   updateCurrentStage: async (req, res) => {
     try {
       const { id } = req.user;
-      const { job_id,stage } = req.body;
+      const { job_id, stage } = req.body;
       const response = await recruiterDbOperations.updateCurrentStage(
         job_id,
         stage
@@ -454,6 +454,51 @@ const JobController = {
         : res.status(200).json({
             isError: true,
             message: "Failed to update current round!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  AddJobRoundDetails: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const data = req.body;
+      const response = await recruiterDbOperations.AddJobRoundDetails(id, data);
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "Added job round details successfully",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to add job round details!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  ViewJobRoundDetails: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const response = await recruiterDbOperations.AddJobRoundDetails(id, data);
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "Added job round details successfully",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to add job round details!",
           });
     } catch (err) {
       console.log(err);

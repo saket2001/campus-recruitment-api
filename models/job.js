@@ -41,9 +41,6 @@ const JobSchema = mongoose.Schema({
   requirements: {
     type: String,
   },
-  filePath: {
-    type: String,
-  },
   recruiter_id: {
     type: String,
     required: true,
@@ -66,7 +63,11 @@ const JobSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  job_details_file: {
+    type:String,
+  },
   job_stages: [],
+  skills:[]
 });
 
 module.exports = mongoose.model('Job', JobSchema);

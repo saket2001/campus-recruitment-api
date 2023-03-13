@@ -127,6 +127,12 @@ recruiter_routes.post(
   authMethods.verifyUser(ROLES_LIST.recruiter, ROLES_LIST.admin),
   recruiterControllers.JobController.updateCurrentStage
 );
+recruiter_routes.post(
+  "/add-job-round-details",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.recruiter),
+  recruiterControllers.JobController.AddJobRoundDetails
+);
 
 
 ////////////////////////////////////////////

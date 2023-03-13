@@ -221,14 +221,15 @@ const userDbOperations = {
   },
   getUserResume: async (id) => {
     try {
-      const data = await userResume.find(
+      const data = await userResume.findOne(
         { user_id: id },
-        { resume_file: 1, _id: 1 }
+        { resume_file: 1, _id: 1,user_id:1 }
       );
-      if (data?._id !== id) return 2;
+      console.log(data)
+      // if (data?.user_id !== id) return 2;
 
       if (data === [] || !data) return false;
-      return data[0].resume_file;
+      return data.resume_file;
     } catch {
       return false;
     }
