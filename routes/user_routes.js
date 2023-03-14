@@ -167,6 +167,12 @@ user_router.get(
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.getApplicationStatus
 );
+user_router.get(
+  "/get-job-recommendations/",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.jobController.getJobRecommendations
+);
 
 // group routes 
 user_router.get(

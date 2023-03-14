@@ -11,6 +11,7 @@ const job = require("../models/job");
 const mongoose = require("mongoose");
 const group = require("../models/group");
 const notification = require("../models/notification");
+const jobRecommendation = require("../models/jobRecommendation");
 
 ///////////////////////////
 
@@ -223,9 +224,9 @@ const userDbOperations = {
     try {
       const data = await userResume.findOne(
         { user_id: id },
-        { resume_file: 1, _id: 1,user_id:1 }
+        { resume_file: 1, _id: 1, user_id: 1 }
       );
-      console.log(data)
+      console.log(data);
       // if (data?.user_id !== id) return 2;
 
       if (data === [] || !data) return false;
@@ -414,6 +415,53 @@ const userDbOperations = {
       //   return await job.findById(d?.job_id)
       // });
       return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  saveJobRecommendations: async (
+    user_id,
+    job_ids,
+    recommendations,
+    percentageData
+  ) => {
+    try {
+      const data = {
+        user_id: user_id,
+        job_ids: job_ids,
+        recommendations: recommendations,
+        similarityPercentage:percentageData,
+      };
+      const newData = new jobRecommendation(data);
+      await newData.save();
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  getSavedJobRecommendations: async (user_id) => {
+    try {
+      let recommendationsData = []
+      let similarityPercentageData = [];
+      let temp1 = [];
+      let temp2 = [];
+      const data = await jobRecommendation.find(
+        { user_id: user_id },
+        { recommendations: 1,similarityPercentage:1 }
+      );
+      console.log(data)
+      for (const job of data) {
+        temp1 = job["recommendations"];
+        recommendationsData.push(...temp1);
+        temp2 = job["similarityPercentage"];
+        similarityPercentageData.push(...temp2);
+      }
+      return {
+        recommendations: recommendationsData,
+        similarityPercentage: similarityPercentageData,
+      };
     } catch (err) {
       console.log(err);
       return false;

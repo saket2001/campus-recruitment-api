@@ -167,6 +167,57 @@ const JobController = {
       });
     }
   },
+  // user job recommendation
+  getJobRecommendations: async (req, res) => {
+    const { id } = req.user;
+    try {
+      // make request to flask server
+      const flask_response = await fetch(
+        `http://127.0.0.1:5000/job-recommender?user_id=${id}`
+      );
+
+      const data = await flask_response.json();
+      const parsedData = JSON.parse(data?.data);
+      const percentageData = JSON.parse(data?.percentageData);
+      console.log(parsedData?.length,percentageData)
+      // save only when there are recommendations
+      // alert user
+      if (parsedData?.length > 0) {
+        const jobIds = parsedData?.map((j) => {
+          return j._id["$oid"];
+        });
+        await userDbOperations.saveJobRecommendations(
+          id,
+          jobIds,
+          parsedData,
+          percentageData
+        );
+        return res.status(200).json({
+          isError: false,
+          data: {
+            recommendations: parsedData,
+            similarityPercentage: percentageData,
+          },
+        });
+      } else {
+        // else send them saved recommendations
+        const savedData = await userDbOperations.getSavedJobRecommendations(id);
+        return res.status(200).json({
+          isError: false,
+          data: savedData,
+          message: "No new recommendations found at this moment!",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      const savedData = await userDbOperations.getSavedJobRecommendations(id);
+      return res.status(200).json({
+        isError: false,
+        data: savedData,
+        message: "No new recommendations found at this moment!",
+      });
+    }
+  },
   // dashboard
   dashboardAnalysis: async (req, res) => {
     try {
