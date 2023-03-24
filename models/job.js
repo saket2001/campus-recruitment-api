@@ -41,15 +41,10 @@ const JobSchema = mongoose.Schema({
   requirements: {
     type: String,
   },
-  recruiter_id: {
+  created_by: {
     type: String,
     required: true,
-    ref: "recruiter",
-  },
-  company_id: {
-    type: String,
-    required: true,
-    ref: "company",
+    ref:'admin'
   },
   created_at: {
     type: mongoose.Schema.Types.Date,

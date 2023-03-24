@@ -1,57 +1,16 @@
-//
 const recruiter = require("../models/recruiter");
 const company = require("../models/company");
 const job = require("../models/job");
 const jobDetails = require("../models/jobDetails");
 const userResumeData = require("../models/userResumeData");
-const userResume = require("../models/userResume");
 const { default: mongoose } = require("mongoose");
 const user = require("../models/user");
-const jobRoundDetails = require('../models/jobRoundDetails');
+const jobRoundDetails = require("../models/jobRoundDetails");
+const admin = require("../models/admin");
+
 ///////////////////////////
-
-const recruiterDbOperations = {
-  registerRecruiter: async (recruiterData) => {
-    // first look for any user with same email id
-    const recruiterAlreadyExists = await recruiter.findOne({
-      email: recruiterData.email,
-    });
-    if (recruiterAlreadyExists) return 1;
-
-    // check for no of recruiter accounts
-    const existingRecruiters = await company.findById(
-      recruiterData.company_id,
-      { recruiters: 1 }
-    );
-
-    if (existingRecruiters.recruiters.length >= 2) return 3;
-
-    const newRecruiter = new recruiter(recruiterData);
-    const savedRecruiter = await newRecruiter.save();
-
-    // saving recruiter in company records
-    const existing_company = await company.findById(recruiterData.company_id);
-    // deleting the saved user from db
-    if (!existing_company) {
-      recruiterDbOperations.deleteRecruiterById(savedRecruiter._id);
-      return 2;
-    }
-    existing_company.recruiters.push({ id: savedRecruiter._id });
-    await existing_company.save();
-
-    return savedRecruiter;
-  },
-  getRecruiterById: async (id) => await recruiter.findById(id, { password: 0 }),
-  getRecruiterByEmail: async (email, fields = {}) =>
-    await recruiter.findOne({ email: email }, fields),
-  deleteRecruiterById: async (id) => await recruiter.findByIdAndDelete(id),
+const jobDbOperations = {
   createJob: async (id, data) => {
-    // checking if recruiter is verified to create job
-    const recruiterData = await recruiter.findById(id, { password: 0 });
-
-    // if not verified
-    if (!recruiterData?.isVerified) return 1;
-
     const manualFields = [
       {
         name: "applicants",
@@ -75,28 +34,31 @@ const recruiterDbOperations = {
     // else
     const newJob = new job({
       ...data,
-      recruiter_id: id,
-      company_id: recruiterData?.company_id,
       is_active: true,
       created_at: new Date(),
       current_stage: "registration",
+      created_by: id,
     });
 
     newJob.save();
 
     // saving this in recruiter
-    const oldData = await recruiter.findById(id, { _id: 0, jobs_posted: 1 });
-    oldData?.jobs_posted?.push({ job_id: newJob?._id });
+    const oldData = await admin.findById(id, { _id: 0, created_jobs: 1 });
+    oldData?.created_jobs?.push({
+      job_id: newJob?._id,
+      created_at: new Date(),
+    });
 
-    await recruiter.findByIdAndUpdate(id, {
-      jobs_posted: oldData.jobs_posted,
+    await admin.findByIdAndUpdate(id, {
+      created_jobs: oldData.created_jobs,
     });
 
     // creating job details in db
     const newJobDetails = new jobDetails({
       job_id: newJob._id,
-      recruiter_id: id,
+      created_by: id,
       job_stages: data["job_stages"],
+      last_edited: new Date(),
     });
 
     newJobDetails.save();
@@ -105,8 +67,9 @@ const recruiterDbOperations = {
   },
   uploadFile: async (id, data) => {
     try {
-      const jobData = await job.findByIdAndUpdate(id, { job_details_file: data });
-      console.log(jobData);
+      const jobData = await job.findByIdAndUpdate(id, {
+        job_details_file: data,
+      });
 
       return true;
     } catch (err) {
@@ -117,20 +80,19 @@ const recruiterDbOperations = {
   deleteJob: async (id, job_id) => {
     try {
       const jobExists = await job.find({ _id: job_id });
-      console.log(jobExists);
       if (!jobExists) return 1;
 
       // delete job from recruiters data
-      let job_postedData = await recruiter.findById(id, {
-        jobs_posted: 1,
+      let job_postedData = await admin.findById(id, {
+        created_jobs: 1,
       });
 
-      const newData = job_postedData.jobs_posted.filter((d) => {
+      const newData = job_postedData.created_jobs.filter((d) => {
         if (d.job_id.toString() !== job_id) return d;
       });
 
-      await recruiter.findByIdAndUpdate(id, {
-        jobs_posted: newData,
+      await admin.findByIdAndUpdate(id, {
+        created_jobs: newData,
       });
 
       // delete job details
@@ -147,7 +109,6 @@ const recruiterDbOperations = {
   },
   editJob: async (job_id, data) => {
     try {
-      console.log(data);
       let dbJobData = await job.findOneAndUpdate({ _id: job_id }, { ...data });
 
       // updating job stages manually
@@ -165,8 +126,7 @@ const recruiterDbOperations = {
   },
   toggleJob: async (id, job_id) => {
     try {
-      const jobExists = await job.find({ _id: job_id });
-      console.log(jobExists);
+      const jobExists = await job.find({ _id: job_id, created_by: id });
       if (!jobExists) return 1;
 
       // toggling status
@@ -185,12 +145,14 @@ const recruiterDbOperations = {
       return false;
     }
   },
-  // for recruiter only
+  // for admin only
   getJobAndJobDetails: async (id) => {
     try {
       // get job
-      const data = await job.find({ recruiter_id: id }).sort({created_at:-1});
-      
+      const data = await job
+        .find({ recruiter_id: id })
+        .sort({ created_at: -1 });
+
       return data;
     } catch (err) {
       console.log(err);
@@ -211,7 +173,7 @@ const recruiterDbOperations = {
         role: 1,
         company_name: 1,
         created_at: 1,
-        current_stage:1,
+        current_stage: 1,
       });
 
       // const recruiter_name=await recruiter.findById()
@@ -233,14 +195,17 @@ const recruiterDbOperations = {
       // converting ids to objects id
       returnData["usersData"] = await userResumeData.find(
         { user_id: { $in: obj_ids } },
-        { basic_details: 1, education: 1, user_id: 1,skills:1 }
+        { basic_details: 1, education: 1, user_id: 1, skills: 1 }
       );
+
       returnData["usersStatus"] = await user.find(
         { _id: { $in: obj_ids } },
         {
           current_status: 1,
         }
       );
+
+      // get round details if round is aptitude test or interview
 
       return returnData;
     } catch (err) {
@@ -325,88 +290,88 @@ const recruiterDbOperations = {
       return false;
     }
   },
-  dashboardAnalysis: async (id) => {
-    try {
-      const data = {
-        totalJobs: 0,
-        AvgResponses: 0,
-        jobResponses: {},
-        allJobsCount: {},
-        currentPosts: [],
-      };
+  //   dashboardAnalysis: async (id) => {
+  //     try {
+  //       const data = {
+  //         totalJobs: 0,
+  //         AvgResponses: 0,
+  //         jobResponses: {},
+  //         allJobsCount: {},
+  //         currentPosts: [],
+  //       };
 
-      // total jobs created
-      const allJobs = await job.find(
-        { recruiter_id: id },
-        { _id: 1, role: 1, company_name: 1 }
-      );
-      data["totalJobs"] = allJobs?.length;
+  //       // total jobs created
+  //       const allJobs = await job.find(
+  //         { recruiter_id: id },
+  //         { _id: 1, role: 1, company_name: 1 }
+  //       );
+  //       data["totalJobs"] = allJobs?.length;
 
-      // total avg response range
-      const jobDetailsData = await jobDetails.find(
-        { recruiter_id: id },
-        { job_stages: 1 }
-      );
-      const jobResponses = [];
-      jobDetailsData?.forEach((job) => {
-        const applicants = job?.job_stages.find((d) => d.name === "applicants");
-        jobResponses.push(applicants?.data?.length);
-      });
+  //       // total avg response range
+  //       const jobDetailsData = await jobDetails.find(
+  //         { recruiter_id: id },
+  //         { job_stages: 1 }
+  //       );
+  //       const jobResponses = [];
+  //       jobDetailsData?.forEach((job) => {
+  //         const applicants = job?.job_stages.find((d) => d.name === "applicants");
+  //         jobResponses.push(applicants?.data?.length);
+  //       });
 
-      // job responses
-      const jobResponsesName = allJobs?.map((j) => `${j.role}`);
-      data["jobResponses"] = {
-        labels: jobResponsesName,
-        datasets: [
-          {
-            label: "Responses per job",
-            data: jobResponses,
-            backgroundColor: "rgba(56, 55, 221, 0.8)",
-          },
-        ],
-      };
+  //       // job responses
+  //       const jobResponsesName = allJobs?.map((j) => `${j.role}`);
+  //       data["jobResponses"] = {
+  //         labels: jobResponsesName,
+  //         datasets: [
+  //           {
+  //             label: "Responses per job",
+  //             data: jobResponses,
+  //             backgroundColor: "rgba(56, 55, 221, 0.8)",
+  //           },
+  //         ],
+  //       };
 
-      const sorted = [...jobResponses]?.sort((a, b) => a - b);
-      data["AvgResponses"] = `${sorted.at(0)}-${sorted.at(-1)}`;
+  //       const sorted = [...jobResponses]?.sort((a, b) => a - b);
+  //       data["AvgResponses"] = `${sorted.at(0)}-${sorted.at(-1)}`;
 
-      // count of all job roles
-      const allJobRoles = await job.find({is_active:true}, { role: 1 });
-      let labels = allJobRoles.map((d) => d.role.toLowerCase());
-      let labelCount = {};
-      labels.forEach((role) => {
-        if (labelCount.hasOwnProperty(role))
-          labelCount[role] = labelCount[role]+1;
-        else labelCount[role] = 1;
-      });
-      data["allJobsCount"] = {
-        labels: labels,
-        datasets: [
-          {
-            label: "Role count",
-            data: Object.values(labelCount),
-            backgroundColor: [],
-          },
-        ],
-      };
+  //       // count of all job roles
+  //       const allJobRoles = await job.find({ is_active: true }, { role: 1 });
+  //       let labels = allJobRoles.map((d) => d.role.toLowerCase());
+  //       let labelCount = {};
+  //       labels.forEach((role) => {
+  //         if (labelCount.hasOwnProperty(role))
+  //           labelCount[role] = labelCount[role] + 1;
+  //         else labelCount[role] = 1;
+  //       });
+  //       data["allJobsCount"] = {
+  //         labels: labels,
+  //         datasets: [
+  //           {
+  //             label: "Role count",
+  //             data: Object.values(labelCount),
+  //             backgroundColor: [],
+  //           },
+  //         ],
+  //       };
 
-      // current posts
-      const date = new Date();
-      const today = `${date.getFullYear()}-${
-        date.getMonth() + 1 < 10
-          ? `0${date.getMonth() + 1}`
-          : date.getMonth() + 1
-      }-${date.getDate()}`;
-      data["currentPosts"] = await job.find({
-        recruiter_id: id,
-        last_date: { $gte: today },
-      });
+  //       // current posts
+  //       const date = new Date();
+  //       const today = `${date.getFullYear()}-${
+  //         date.getMonth() + 1 < 10
+  //           ? `0${date.getMonth() + 1}`
+  //           : date.getMonth() + 1
+  //       }-${date.getDate()}`;
+  //       data["currentPosts"] = await job.find({
+  //         recruiter_id: id,
+  //         last_date: { $gte: today },
+  //       });
 
-      return data;
-    } catch (err) {
-      console.log(err);
-      return false;
-    }
-  },
+  //       return data;
+  //     } catch (err) {
+  //       console.log(err);
+  //       return false;
+  //     }
+  //   },
   updateCurrentStage: async (job_id, newStage) => {
     try {
       const jobData = await job.findByIdAndUpdate(job_id, {
@@ -425,12 +390,41 @@ const recruiterDbOperations = {
       return false;
     }
   },
-  AddJobRoundDetails: async (rec_id, data) => {
+  addJobRoundDetails: async (rec_id, data) => {
     try {
       data["recruiter_id"] = rec_id;
-      const newDetails = await jobRoundDetails(data);
+      const newDetails = new jobRoundDetails(data);
       await newDetails.save();
       return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  saveJobRoundDetails: async (rec_id, data) => {
+    try {
+      data["recruiter_id"] = rec_id;
+      // const newDetails = await new jobRoundDetails(data);
+      const savedDetails = await jobRoundDetails.findOneAndUpdate(
+        { job_id: data["job_id"] },
+        { ...data }
+      );
+      console.log(savedDetails);
+      return savedDetails ? true : false;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  deleteJobRoundDetails: async (rec_id, job_id, view) => {
+    try {
+      const deletedDetails = await jobRoundDetails.findOneAndDelete({
+        job_id: job_id,
+        recruiter_id: rec_id,
+        round_name: view,
+      });
+      console.log(deletedDetails);
+      return deletedDetails ? true : false;
     } catch (err) {
       console.log(err);
       return false;
@@ -459,9 +453,6 @@ const recruiterDbOperations = {
       data["job_details"] = await temp[0]["job_stages"]?.find((d) => {
         if (d.name === "applicants") return d["data"];
       });
-
-      // job description file
-
 
       return data;
     } catch (err) {
@@ -547,6 +538,18 @@ const recruiterDbOperations = {
       return false;
     }
   },
+  getJobRoundDetails: async (id, view) => {
+    try {
+      const roundDetails = await jobRoundDetails.findOne({
+        job_id: id,
+        round_name: view,
+      });
+      return roundDetails;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
 };
 
-module.exports = recruiterDbOperations;
+module.exports = jobDbOperations;

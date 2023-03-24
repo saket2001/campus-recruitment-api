@@ -30,6 +30,7 @@ const adminSchema = new Schema({
     type: mongoose.Schema.Types.Date,
     required: true,
   },
+  created_jobs:[],
 });
 
 module.exports=mongoose.model('admins',adminSchema)

@@ -10,8 +10,7 @@ const {
   socketIO,
 } = require("../../utils/socketIO");
 const userDbOperations = require("../../db/user");
-// const jobDetails = require("../../models/jobDetails");
-// const userResumeData = require("../../models/userResumeData");
+const jobDbOperations = require("../../db/job");
 //////////////////////////////
 
 const JobController = {
@@ -37,7 +36,7 @@ const JobController = {
           .json({ isError: true, message: isValid.message });
 
       // save the data in db
-      const response = await recruiterDbOperations.createJob(id, jobData);
+      const response = await jobDbOperations.createJob(id, jobData);
 
       if (response === 1)
         return res.status(200).json({
@@ -111,10 +110,8 @@ const JobController = {
       const filePath = req.filePath;
       const { job_id } = req.body;
 
-      console.log(id, filePath, job_id);
-
       // save filepath in db
-      const response = await recruiterDbOperations.uploadFile(job_id, filePath);
+      const response = await jobDbOperations.uploadFile(job_id, filePath);
 
       return response
         ? res
@@ -135,7 +132,7 @@ const JobController = {
     try {
       const { job_id, data } = req.body;
 
-      const response = await recruiterDbOperations.editJob(job_id, data);
+      const response = await jobDbOperations.editJob(job_id, data);
 
       // if doesn't exists
       if (response === 1)
@@ -166,9 +163,8 @@ const JobController = {
     try {
       const { id } = req.user;
       const { job_id } = req.body;
-      console.log(job_id);
 
-      const response = await recruiterDbOperations.deleteJob(id, job_id);
+      const response = await jobDbOperations.deleteJob(id, job_id);
 
       // if doesn't exists
       if (response === 1)
@@ -198,7 +194,6 @@ const JobController = {
     try {
       const { id } = req.user;
       const { job_id } = req.params;
-      console.log(job_id);
 
       const response = await recruiterDbOperations.toggleJob(id, job_id);
 
@@ -463,11 +458,11 @@ const JobController = {
       });
     }
   },
-  AddJobRoundDetails: async (req, res) => {
+  addJobRoundDetails: async (req, res) => {
     try {
       const { id } = req.user;
       const data = req.body;
-      const response = await recruiterDbOperations.AddJobRoundDetails(id, data);
+      const response = await recruiterDbOperations.addJobRoundDetails(id, data);
 
       return response
         ? res.status(200).json({
@@ -477,6 +472,32 @@ const JobController = {
         : res.status(200).json({
             isError: true,
             message: "Failed to add job round details!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  saveJobRoundDetails: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const data = req.body;
+      const response = await recruiterDbOperations.saveJobRoundDetails(
+        id,
+        data
+      );
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "Saved job round details successfully",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to save job round details!",
           });
     } catch (err) {
       console.log(err);
@@ -499,6 +520,33 @@ const JobController = {
         : res.status(200).json({
             isError: true,
             message: "Failed to add job round details!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  deleteJobRoundDetails: async (req, res) => {
+    try {
+      const { id } = req.user;
+      const { job_id, view } = req.params;
+      const response = await recruiterDbOperations.deleteJobRoundDetails(
+        id,
+        job_id,
+        view
+      );
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "Deleted job round details successfully",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to delete job round details!",
           });
     } catch (err) {
       console.log(err);
@@ -612,6 +660,28 @@ const JobController = {
         : res.status(500).json({
             isError: true,
             message: "Something went wrong on server!",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
+  getJobRoundDetails: async (req, res) => {
+    try {
+      const { job_id, view } = req.params;
+      const data = await recruiterDbOperations.getJobRoundDetails(job_id, view);
+
+      return data
+        ? res.status(200).json({
+            isError: false,
+            data,
+          })
+        : res.status(500).json({
+            isError: true,
+            message: "Unable to get job round details at this moment!",
           });
     } catch (err) {
       console.log(err);

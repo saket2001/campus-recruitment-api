@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const group = require("../models/group");
 const notification = require("../models/notification");
 const jobRecommendation = require("../models/jobRecommendation");
+const jobRoundDetails = require("../models/jobRoundDetails");
 
 ///////////////////////////
 
@@ -260,6 +261,7 @@ const userDbOperations = {
       return false;
     }
   },
+  // TODO: work on its accuracy
   checkProfileStatus: async (id) => {
     const userData = await userResumeData.findOne(
       { user_id: id },
@@ -363,7 +365,6 @@ const userDbOperations = {
       return false;
     }
   },
-  removeJobApp: async (job_id, user_id) => {},
   saveJob: async (job_id, user_id) => {
     try {
       let data = await user.findById(user_id, { saved_jobs: 1, _id: 0 });
@@ -431,7 +432,7 @@ const userDbOperations = {
         user_id: user_id,
         job_ids: job_ids,
         recommendations: recommendations,
-        similarityPercentage:percentageData,
+        similarityPercentage: percentageData,
       };
       const newData = new jobRecommendation(data);
       await newData.save();
@@ -443,15 +444,15 @@ const userDbOperations = {
   },
   getSavedJobRecommendations: async (user_id) => {
     try {
-      let recommendationsData = []
+      let recommendationsData = [];
       let similarityPercentageData = [];
       let temp1 = [];
       let temp2 = [];
       const data = await jobRecommendation.find(
         { user_id: user_id },
-        { recommendations: 1,similarityPercentage:1 }
+        { recommendations: 1, similarityPercentage: 1 }
       );
-      console.log(data)
+      console.log(data);
       for (const job of data) {
         temp1 = job["recommendations"];
         recommendationsData.push(...temp1);
@@ -514,6 +515,7 @@ const userDbOperations = {
         roundDetails: {},
         userResume: "",
         userStatus: "",
+        roundInformation: {},
       };
       let temp = [];
 
@@ -576,6 +578,24 @@ const userDbOperations = {
       );
       data["userStatus"] = isUserInCurrRound;
 
+      // sending extra round details
+      if (
+        [
+          "aptitude test",
+          "technical interview",
+          "hr interview",
+          "round",
+        ].includes(curr_stage)
+      ) {
+        temp = await jobRoundDetails.findOne(
+          {
+            job_id: job_id,
+            round_name: curr_stage,
+          },
+          { recruiter_id: 0 }
+        );
+        if (temp) data["roundInformation"] = temp;
+      }
       return data;
     } catch (err) {
       console.log(err);
@@ -792,6 +812,8 @@ const userDbOperations = {
       return false;
     }
   },
+  // notifications
+  // TODO: Add seen logic
   saveNotification: async (data) => {
     try {
       const newNotification = new notification(data);

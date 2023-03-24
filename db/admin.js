@@ -6,7 +6,6 @@ const notice = require("../models/notice");
 const { randomUUID } = require("crypto");
 const recruiter = require("../models/recruiter");
 const company = require("../models/company");
-const placedStudentsHistory = require("../models/placedStudentsHistory");
 const jobDetails = require("../models/jobDetails");
 const job = require("../models/job");
 const mongoose = require("mongoose");
@@ -323,9 +322,8 @@ const adminDbOperations = {
     try {
       const data = {
         totalStudents: 0,
-        totalRecruiters: 0,
-        totalCompanies: 0,
         totalPlacedStudents: 0,
+        jobResponses: [],
         studentsPerBranch: { labels: [], datasets: [{ data: [] }] },
         prevYearPlacementsPerCompany: { labels: [], datasets: [{ data: [] }] },
       };
@@ -361,20 +359,30 @@ const adminDbOperations = {
       data["studentsPerBranch"]["datasets"][0]["data"] = nums;
 
       // placed students
-      // temp = await placedStudentsHistory.find(
-      //   { created_at: { $gte: new Date().getFullYear() } },
-      //   { selected_candidates: 1 }
-      // );
-      // console.log(temp);
-      // data["totalPlacedStudents"] = temp?.length;
 
-      // recruiters
-      temp = await recruiter.find({ isVerified: true }, { _id: 1 });
-      data["totalRecruiters"] = temp.length;
-
-      // companies
-      temp = await company.find({ isVerified: true }, { _id: 1 });
-      data["totalCompanies"] = temp.length;
+      // job responses
+      const jobDetailsData = await jobDetails.find(
+        { created_by: id },
+        { job_stages: 1 }
+      );
+      const jobResponses = [];
+      jobDetailsData?.forEach((job) => {
+        const applicants = job?.job_stages.find((d) => d.name === "applicants");
+        jobResponses.push(applicants?.data?.length);
+      });
+      
+      const allJobs = await job.find({ created_by: id, is_active: true });
+      const jobResponsesName = allJobs?.map((j) => `${j.role}`);
+      data["jobResponses"] = {
+        labels: jobResponsesName,
+        datasets: [
+          {
+            label: "Responses per job",
+            data: jobResponses,
+            backgroundColor: "rgba(56, 55, 221, 0.8)",
+          },
+        ],
+      };
 
       // previous placements per company
       const year = new Date().getFullYear();

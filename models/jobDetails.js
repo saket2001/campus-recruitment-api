@@ -6,14 +6,14 @@ const JobDetailsSchema = mongoose.Schema({
     required: true,
     ref: "Job",
   },
-  recruiter_id: {
+  created_by: {
     type: String,
     required: true,
-    ref: "recruiter",
+    ref: "admin",
   },
   job_stages: [],
   last_edited: {
-    type:Date,
+    type: Date,
   },
 });
 
