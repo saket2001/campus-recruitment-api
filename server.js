@@ -2,10 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/user_routes");
-const recruiterRoutes = require("./routes/recruiter_routes");
 const commonRoutes = require("./routes/common_routes");
 const adminRoutes = require("./routes/admin_routes");
-const companyRoutes = require("./routes/company_routes");
 const cookieparser = require("cookie-parser");
 let session = require("express-session");
 const { socketIO, socketUtils } = require("./utils/socketIO");
@@ -54,9 +52,7 @@ server.get("/api/v1/check-status", (req, res) => {
 });
 server.use("/api/v1/", commonRoutes);
 server.use("/api/v1/user", userRoutes);
-server.use("/api/v1/recruiter", recruiterRoutes);
 server.use("/api/v1/admin", adminRoutes);
-server.use("/api/v1/company", companyRoutes);
 
 //////////////////////////////////
 // socketIO.on("connection", (socket) => {
@@ -72,13 +68,11 @@ module.exports = onlineSessionUsers;
 
 socketIO.on("connection", (socket) => {
   socket.on("user-login", (data) => {
-    // console.log(`${socket.id} connected to server`)
     socketUtils.addUserToSession(data);
   });
 
   // on disconnect
   socket.on("disconnect", () => {
-    // console.log(`${socket.id} disconnected from server`);
     socketUtils.removeUserFromSession(socket.id);
   });
 });

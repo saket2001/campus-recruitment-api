@@ -199,13 +199,19 @@ user_router.get(
   "/get-notifications",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.user),
-  userControllers.jobController.getNotifications
+  userControllers.notificationController.getNotifications
+);
+user_router.post(
+  "/change-notification-status",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.notificationController.changeStatusOfNotification
 );
 user_router.delete(
   "/delete-notification/:notification_id",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.user),
-  userControllers.jobController.deleteNotification
+  userControllers.notificationController.deleteNotification
 );
 ////////////////////////////////////////////
 module.exports = user_router;

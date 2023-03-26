@@ -532,7 +532,7 @@ const userDbOperations = {
       const hasUserApplied = temp.applied_to_jobs.find(
         (u) => u.job_id === job_id
       );
-      console.log(hasUserApplied);
+      // console.log({hasUserApplied});
       if (!hasUserApplied) return 1;
 
       data["userDetails"] = temp;
@@ -551,7 +551,12 @@ const userDbOperations = {
 
       // getting that current round entries
       temp = await jobDetails.findOne({ job_id: job_id }, { job_stages: 1 });
-      let entries = temp.job_stages.find((d) => d.name === curr_stage);
+      let entries = [];
+      if (curr_stage === "registration") {
+        entries = temp.job_stages.find((d) => d.name === "applicants");
+      } else {
+        entries = temp.job_stages.find((d) => d.name === curr_stage);
+      }
 
       // getting all the entry users data
       const ids = entries.data.map((u) => u.user_id);
@@ -827,7 +832,9 @@ const userDbOperations = {
   },
   getNotifications: async (id) => {
     try {
-      const data = notification.find({ user_id: id }).sort({ created_at: -1 });
+      const data = notification
+        .find({ receiver_id: id })
+        .sort({ created_at: -1 });
       if (!data || data === null) return false;
 
       return data;
@@ -841,6 +848,34 @@ const userDbOperations = {
       const data = notification.findByIdAndDelete(id);
       if (!data || data === null) return false;
       return data;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  changeStatusOfNotification: async (id, notifications_id) => {
+    try {
+      // let data = [];
+      if (notifications_id?.length > 0) {
+        // update status
+        notifications_id?.forEach(async (n_id) => {
+          await notification.findByIdAndUpdate(
+            { receiver_id: id, _id: n_id },
+            {
+              status: "seen",
+            }
+          );
+        });
+        // // send new updated notifications back
+        // notifications_id?.forEach(async (n_id) => {
+        //   const n = await notification.findOne({ _id: n_id });
+        //   console.log({n});
+        //   data.push(n);
+        // });
+        // return data;
+      }
+
+      return true;
     } catch (err) {
       console.log(err);
       return false;

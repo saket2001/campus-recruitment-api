@@ -25,6 +25,11 @@ const notificationSchema = new Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    default: "created",
+    required: true,
+  },
   delete_after: {
     type: String,
     default: `${new Date().getDate() + 7}/${new Date().getMonth()}/${new Date().getFullYear()}`,

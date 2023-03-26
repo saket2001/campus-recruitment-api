@@ -1,6 +1,4 @@
 const adminDbOperations = require("../../db/admin");
-const company = require("../../models/company");
-const recruiter = require("../../models/recruiter");
 const user = require("../../models/user");
 const commonMethods = require("../../utils/common");
 

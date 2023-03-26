@@ -1,4 +1,3 @@
-const recruiterDbOperations = require("../../db/recruiter");
 const group = require("../../models/group");
 const job = require("../../models/job");
 const user = require("../../models/user");
@@ -225,7 +224,7 @@ const JobController = {
     try {
       const { id } = req.user;
 
-      const response = await recruiterDbOperations.getJobAndJobDetails(id);
+      const response = await jobDbOperations.getJobAndJobDetails(id);
       if (response)
         return res.status(200).json({
           isError: false,
@@ -247,7 +246,7 @@ const JobController = {
   getJobEntries: async (req, res) => {
     try {
       const { job_id, view } = req.params;
-      const response = await recruiterDbOperations.getJobEntries(job_id, view);
+      const response = await jobDbOperations.getJobEntries(job_id, view);
 
       // if error
       if (!response || response === 1)
@@ -273,7 +272,7 @@ const JobController = {
     try {
       const { job_id } = req.params;
 
-      const data = await recruiterDbOperations.getJobStages(job_id);
+      const data = await jobDbOperations.getJobStages(job_id);
 
       data
         ? res.status(200).json({
@@ -299,7 +298,7 @@ const JobController = {
       const { job_id } = req.params;
       console.log(body);
 
-      const response = await recruiterDbOperations.changeUserJobStatus(
+      const response = await jobDbOperations.changeUserJobStatus(
         job_id,
         body,
         id
@@ -370,7 +369,7 @@ const JobController = {
       const { job_id } = req.params;
       console.log(body);
 
-      const response = await recruiterDbOperations.removeCandidate(
+      const response = await jobDbOperations.removeCandidate(
         job_id,
         body
       );
@@ -395,7 +394,7 @@ const JobController = {
   downloadJobApplicantsData: async (req, res) => {
     try {
       const { view, job_id } = req.params;
-      const response = await recruiterDbOperations.downloadJobApplicantsData(
+      const response = await jobDbOperations.downloadJobApplicantsData(
         job_id,
         view
       );
@@ -436,10 +435,7 @@ const JobController = {
     try {
       const { id } = req.user;
       const { job_id, stage } = req.body;
-      const response = await recruiterDbOperations.updateCurrentStage(
-        job_id,
-        stage
-      );
+      const response = await jobDbOperations.updateCurrentStage(job_id, stage);
 
       return response
         ? res.status(200).json({
@@ -462,7 +458,7 @@ const JobController = {
     try {
       const { id } = req.user;
       const data = req.body;
-      const response = await recruiterDbOperations.addJobRoundDetails(id, data);
+      const response = await jobDbOperations.addJobRoundDetails(id, data);
 
       return response
         ? res.status(200).json({
@@ -485,10 +481,7 @@ const JobController = {
     try {
       const { id } = req.user;
       const data = req.body;
-      const response = await recruiterDbOperations.saveJobRoundDetails(
-        id,
-        data
-      );
+      const response = await jobDbOperations.saveJobRoundDetails(id, data);
 
       return response
         ? res.status(200).json({
@@ -510,7 +503,7 @@ const JobController = {
   ViewJobRoundDetails: async (req, res) => {
     try {
       const { id } = req.user;
-      const response = await recruiterDbOperations.AddJobRoundDetails(id, data);
+      const response = await jobDbOperations.AddJobRoundDetails(id, data);
 
       return response
         ? res.status(200).json({
@@ -533,7 +526,7 @@ const JobController = {
     try {
       const { id } = req.user;
       const { job_id, view } = req.params;
-      const response = await recruiterDbOperations.deleteJobRoundDetails(
+      const response = await jobDbOperations.deleteJobRoundDetails(
         id,
         job_id,
         view
@@ -561,7 +554,7 @@ const JobController = {
     try {
       const { id } = req.user;
 
-      const response = await recruiterDbOperations.dashboardAnalysis(id);
+      const response = await jobDbOperations.dashboardAnalysis(id);
 
       return response
         ? res.status(200).json({ isError: false, data: response })
@@ -580,7 +573,7 @@ const JobController = {
   getJobs: async (req, res) => {
     try {
       const roleCode = req.user.roles[0];
-      const response = await recruiterDbOperations.getJobs(roleCode);
+      const response = await jobDbOperations.getJobs(roleCode);
 
       if (response)
         return res.status(200).json({
@@ -604,7 +597,7 @@ const JobController = {
       const { job_id } = req.params;
       const roleCode = req.user.roles[0];
 
-      const response = await recruiterDbOperations.getJobById(job_id, roleCode);
+      const response = await jobDbOperations.getJobById(job_id, roleCode);
       if (response)
         return res.status(200).json({
           isError: false,
@@ -624,7 +617,7 @@ const JobController = {
   },
   getFilter: async (req, res) => {
     try {
-      const data = await recruiterDbOperations.getFilters();
+      const data = await jobDbOperations.getFilters();
 
       data
         ? res.status(200).json({
@@ -647,10 +640,7 @@ const JobController = {
     try {
       const { recruiter_id, company_id } = req.params;
       console.log(recruiter_id);
-      const data = await recruiterDbOperations.getDetails(
-        recruiter_id,
-        company_id
-      );
+      const data = await jobDbOperations.getDetails(recruiter_id, company_id);
 
       data
         ? res.status(200).json({
@@ -672,7 +662,7 @@ const JobController = {
   getJobRoundDetails: async (req, res) => {
     try {
       const { job_id, view } = req.params;
-      const data = await recruiterDbOperations.getJobRoundDetails(job_id, view);
+      const data = await jobDbOperations.getJobRoundDetails(job_id, view);
 
       return data
         ? res.status(200).json({

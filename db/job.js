@@ -1,5 +1,3 @@
-const recruiter = require("../models/recruiter");
-const company = require("../models/company");
 const job = require("../models/job");
 const jobDetails = require("../models/jobDetails");
 const userResumeData = require("../models/userResumeData");
