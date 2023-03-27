@@ -367,7 +367,7 @@ const JobController = {
     try {
       const body = req.body;
       const { job_id } = req.params;
-      console.log(body);
+      console.log(job_id,body);
 
       const response = await jobDbOperations.removeCandidate(
         job_id,

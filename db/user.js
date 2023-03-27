@@ -182,6 +182,48 @@ const userDbOperations = {
       return false;
     }
   },
+  saveUserPicture: async (id, filePath) => {
+    try {
+      const basicDetails = await userResumeData.findOne(
+        { user_id: id },
+        { basic_details: 1 }
+      );
+      await userResumeData.findOneAndUpdate(
+        { user_id: id },
+        {
+          basic_details: {
+            ...basicDetails.basic_details,
+            profile_picture: filePath,
+          },
+        }
+      );
+
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  deleteUserPicture: async (id) => {
+    try {
+      const basicDetails = await userResumeData.findOne(
+        { user_id: id },
+        { basic_details: 1 }
+      );
+      await userResumeData.findOneAndUpdate(
+        { user_id: id },
+        {
+          basic_details: {
+            ...basicDetails.basic_details,
+            profile_picture: "",
+          },
+        }
+      );
+
+      return true;
+    } catch {
+      return false;
+    }
+  },
   saveUserResumeData: async (id, data) => {
     try {
       let dbUserData = await userResumeData.findOneAndUpdate(
@@ -246,7 +288,6 @@ const userDbOperations = {
 
       // check for password
       const isPassCorrect = await authMethods?.compareHash(pass, dbPassword);
-      // console.log({ isPassCorrect });
 
       if (!isPassCorrect) return 1;
       else {
@@ -257,7 +298,8 @@ const userDbOperations = {
 
         return email;
       }
-    } catch {
+    } catch(err) {
+      console.log(err);
       return false;
     }
   },

@@ -183,7 +183,7 @@ admin_routes.put(
 admin_routes.get(
   "/toggle-job/:job_id",
   authMethods.authenticateToken,
-  authMethods.verifyUser( ROLES_LIST.admin),
+  authMethods.verifyUser(ROLES_LIST.admin),
   adminController.jobController.toggleJob
 );
 // manage job route
@@ -202,13 +202,13 @@ admin_routes.get(
 admin_routes.post(
   "/change-candidate-status/:job_id",
   authMethods.authenticateToken,
-  authMethods.verifyUser( ROLES_LIST.admin),
+  authMethods.verifyUser(ROLES_LIST.admin),
   adminController.jobController.changeUserJobStatus
 );
 admin_routes.delete(
-  "/remove-candidate/:job_id",
+  "/remove-job-candidate/:job_id",
   authMethods.authenticateToken,
-  authMethods.verifyUser( ROLES_LIST.admin),
+  authMethods.verifyUser(ROLES_LIST.admin),
   adminController.jobController.removeCandidate
 );
 // TODO Not working

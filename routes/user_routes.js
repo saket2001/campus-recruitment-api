@@ -98,10 +98,22 @@ user_router.get(
   userControllers.profileController.getUserProfilePic
 );
 user_router.post(
+  "/profile/upload-profile-picture",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  profilePictureUpload.single("profile_picture"),
+  userControllers.profileController.uploadUserPicture
+);
+user_router.delete(
+  "/profile/delete-profile-picture",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user),
+  userControllers.profileController.deleteUserPicture
+);
+user_router.post(
   "/profile/edit",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
-  profilePictureUpload.single("profile_picture"),
   userControllers.profileController.saveUserResumeData
 );
 user_router.delete(

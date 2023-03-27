@@ -47,10 +47,6 @@ const profileController = {
         });
 
       let filePath = data[0]["basic_details"]["profile_picture"];
-      // const options = {
-      //   root: path.dirname(filePath)
-      // };
-      // filePath = filePath.split('/')[4]
 
       // sending file data
       fs.readFile(filePath, (err, data) => {
@@ -58,17 +54,11 @@ const profileController = {
           console.error(err);
           return;
         }
-        // console.log(typeof data);
         return res.status(200).json({
           isError: false,
           data,
         });
       });
-
-      // doesn't work
-      // return res.status(200).download(filePath);
-      // doesn't work
-      // return res.status(200).sendFile(filePath, options)
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -87,12 +77,12 @@ const profileController = {
           isError: true,
           message: "Resume Data not found for given user id!",
         });
-      
+
       if (fileName === 2) {
-         return res.status(200).json({
-           isError: true,
-           message: "You are not authorized to access this resume file!",
-         });
+        return res.status(200).json({
+          isError: true,
+          message: "You are not authorized to access this resume file!",
+        });
       }
 
       // sending file data
@@ -117,6 +107,67 @@ const profileController = {
       return res.status(500).json({
         isError: true,
         message: "Something went wrong on the server!",
+      });
+    }
+  },
+  uploadUserPicture: async (req, res) => {
+    const image = req.files;
+
+    try {
+      if (!image)
+        return res.status(200).json({
+          isError: true,
+          message: "Image uploaded unsuccessfully",
+        });
+      else {
+        const { id } = req.user;
+        const profile_picture = req.filePath;
+
+        const response = await userDbOperations.saveUserPicture(
+          id,
+          profile_picture
+        );
+
+        if (response)
+          return res.status(200).json({
+            isError: false,
+            message: "Image uploaded successfully",
+          });
+        else
+          return res.status(200).json({
+            isError: false,
+            message: "Failed to upload image! Please try again",
+          });
+      }
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on the server!",
+      });
+    }
+  },
+  deleteUserPicture: async (req, res) => {
+    try {
+      const { id } = req.user;
+
+      const response = userDbOperations.deleteUserPicture(id);
+
+      if (response)
+        return res.status(200).json({
+          isError: false,
+          message: "Profile picture removed successfully!",
+        });
+      else
+        return res.status(200).json({
+          isError: false,
+          message: "Failed to remove profile picture! Please try again",
+        });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: err.message,
       });
     }
   },
@@ -173,8 +224,7 @@ const profileController = {
       const { user_pass } = req.body;
 
       const response = await userDbOperations.deleteUserAccount(id, user_pass);
-
-      console.log({ response });
+      console.log(response)
 
       // if wrong password
       if (response === 1)
@@ -184,27 +234,16 @@ const profileController = {
         });
 
       //  send email to user about account deletion
-      // !Bug: Not working
-      // const emailStatus = await commonMethods.sendEmail({
-      //   to: response,
-      //   subject: "User Account Deletion",
-      //   body: `Attention User,
-      //         < br />
-      //         Your account has been deleted from Campus Recruitment System on your request.
-      //         < br />
-      //         < br />
-      //         < br />
-      //         If you haven't requested this service then please contact us back.
-      //   `,
-      // });
 
-      // console.log({ emailStatus });
-
-      if (response)
-        return res.status(200).json({
-          isError: false,
-          message: "User account deleted successfully!",
-        });
+      return response
+        ? res.status(200).json({
+            isError: false,
+            message: "User account deleted successfully!",
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "Failed to delete user account due to wrong password!",
+          });
     } catch (err) {
       console.log(err);
       return res.status(500).json({
@@ -288,7 +327,6 @@ const profileController = {
     try {
       const { id } = req.user;
       const { new_pass } = req.body;
-      console.log(req.body);
 
       if (!new_pass)
         return res.status(200).json({
