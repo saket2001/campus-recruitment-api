@@ -21,6 +21,9 @@ const userSchema = new Schema({
   date_of_birth: {
     type: String,
   },
+  gender: {
+    type: String,
+  },
   role: {
     type: String,
     required: true,

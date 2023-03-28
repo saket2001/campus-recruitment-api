@@ -343,6 +343,10 @@ const userDbOperations = {
         }
       }
     }
+
+    if (percentComplete > 100) {
+      percentComplete = 100;
+    }
     return percentComplete;
   },
   // job routes

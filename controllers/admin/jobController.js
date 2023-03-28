@@ -194,7 +194,7 @@ const JobController = {
       const { id } = req.user;
       const { job_id } = req.params;
 
-      const response = await recruiterDbOperations.toggleJob(id, job_id);
+      const response = await jobDbOperations.toggleJob(id, job_id);
 
       // if doesn't exists
       if (response === 1)

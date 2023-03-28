@@ -78,6 +78,7 @@ const authController = {
         college_name: body.college_name,
         college_branch: body.college_branch,
         date_of_birth: body.date_of_birth,
+        gender: body.gender,
         role: "user",
         is_verified: false,
         created_at: new Date(),
@@ -181,9 +182,11 @@ const authController = {
   },
   userSignUpGoogle: async (req, res) => {
     const body = req.body;
-    console.log(body);
+    console.log({body});
+
     // checks for if any input field is empty
     const isValid = await commonMethods.checkInputs(body);
+
     if (!isValid.status)
       return res.status(200).json({ isError: true, message: isValid.message });
 
@@ -193,6 +196,7 @@ const authController = {
         email: body.user_email,
         password: "",
         role: "user",
+        gender:"",
         is_verified: false,
         contact_no: "",
         created_at: new Date(),
@@ -200,7 +204,8 @@ const authController = {
 
       // checking if user already exists and saving it
       const response = await userDbOperations.registerUser(user);
-      console.log(response);
+      console.log({ response });
+      
       if (response === 1)
         return res.status(200).json({
           isError: true,

@@ -18,7 +18,8 @@ const userResumeData = new schema({
     age: String,
     admission_number:String,
     college:String,
-    branch:String,
+    branch: String,
+    gender:String,
   },
   education: {
   },

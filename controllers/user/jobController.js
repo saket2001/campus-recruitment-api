@@ -13,7 +13,7 @@ const JobController = {
       // if not user
       if (!roles.includes(201212))
         return res.status(200).json({
-          isError: false,
+          isError: true,
           message: "You do not have permissions to apply for this job",
         });
 
@@ -22,9 +22,9 @@ const JobController = {
       // user cannot apply if unverified
       if (!user.is_verified)
         return res.status(200).json({
-          isError: false,
+          isError: true,
           message:
-            "You do not have permissions to apply for this job as you are unverified candidate",
+            "Only verified profiles can apply to the jobs!",
         });
 
       const response = await userDbOperations.applyToJob(job_id, user_id);
@@ -175,11 +175,15 @@ const JobController = {
       const flask_response = await fetch(
         `http://127.0.0.1:5000/job-recommender?user_id=${id}`
       );
+      // const flask_response = await fetch(
+      //   `${process.env.FLASK_BACKEND_SERVER}/job-recommender?user_id=${id}`
+      // );
 
       const data = await flask_response.json();
+      console.log(data)
       const parsedData = JSON.parse(data?.data);
       const percentageData = JSON.parse(data?.percentageData);
-      console.log(parsedData?.length,percentageData)
+      console.log(parsedData?.length, parsedData,percentageData);
       // save only when there are recommendations
       // alert user
       if (parsedData?.length > 0) {

@@ -14,13 +14,13 @@ exports.socketUtils = {
       return;
 
     onlineSessionUsers?.push(data);
-    console.log(onlineSessionUsers);
+    // console.log(onlineSessionUsers);
   },
   removeUserFromSession: (socket_id) => {
     onlineSessionUsers = onlineSessionUsers?.filter(
       (user) => user.socket_id !== socket_id
     );
-    console.log(onlineSessionUsers);
+    // console.log(onlineSessionUsers);
   },
   GetUserFromSession: (user_id) => {
     const userData = onlineSessionUsers?.find(
