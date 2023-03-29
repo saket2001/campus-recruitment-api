@@ -464,25 +464,28 @@ const jobDbOperations = {
         role: [],
         location: [],
         company_name: [],
+        category:[]
       };
 
       // !TODO: add company name too
       const dbData = await job.find(
         {},
-        { _id: 0, role: 1, location: 1, company_name: 1 }
+        { _id: 0, role: 1, location: 1, company_name: 1,category:1 }
       );
       // console.log(dbData);
 
       dbData.forEach((d) => {
-        data["role"].push(d.role);
-        data["location"].push(d.location);
-        data["company_name"].push(d.company_name);
+        data["role"].push(d.role?.toLowerCase());
+        data["location"].push(d.location?.toLowerCase());
+        data["company_name"].push(d.company_name?.toLowerCase());
+        data["category"].push(d.category?.toLowerCase());
       });
 
       // keeping unique values
       data["role"] = [...new Set(data["role"])];
       data["location"] = [...new Set(data["location"])];
       data["company_name"] = [...new Set(data["company_name"])];
+      data["category"] = [...new Set(data["category"])];
 
       return data;
     } catch (err) {

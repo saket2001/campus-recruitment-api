@@ -24,6 +24,10 @@ const JobSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  category: {
+    type: String,
+    required: true,
+  },
   contact_email: {
     type: String,
     required: true,
@@ -33,6 +37,9 @@ const JobSchema = mongoose.Schema({
     required: true,
   },
   company_name: {
+    type: String,
+  },
+  company_description: {
     type: String,
   },
   description: {
