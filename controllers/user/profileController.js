@@ -2,6 +2,8 @@ const userDbOperations = require("../../db/user");
 const commonMethods = require("../../utils/common");
 const fs = require("fs");
 const path = require("path");
+const ResumeParser = require("simple-resume-parser");
+const pdfUtil = require("pdf-to-text");
 ///////////////////////////////////
 
 //  console.log(err);
@@ -94,6 +96,10 @@ const profileController = {
             message: "Error while getting the resume file from the server",
           });
         }
+        // pdfUtil.pdfToText(fileName, function (err, data) {
+        //   if (err) throw err;
+        //   console.log(data); //print all text
+        // });
         // console.log(typeof data);
         return res.status(200).json({
           isError: false,
@@ -122,6 +128,12 @@ const profileController = {
       else {
         const { id } = req.user;
         const profile_picture = req.filePath;
+
+        const fileName = await userDbOperations.getUserPictureFile(id);
+        fs.unlink(fileName, (err, msg) => {
+          if (err) console.log(err);
+          console.log(msg);
+        });
 
         const response = await userDbOperations.saveUserPicture(
           id,
@@ -224,7 +236,7 @@ const profileController = {
       const { user_pass } = req.body;
 
       const response = await userDbOperations.deleteUserAccount(id, user_pass);
-      console.log(response)
+      console.log(response);
 
       // if wrong password
       if (response === 1)
@@ -355,7 +367,6 @@ const profileController = {
   },
   uploadUserResume: async (req, res) => {
     const file = req.files;
-    console.log(file);
     try {
       if (!file)
         return res.status(200).json({
@@ -369,14 +380,45 @@ const profileController = {
         });
       } else {
         // save filepath string in users db
-
         const { id } = req.user;
         const data = {
           resume_file: req.filePath,
         };
-        const response = await userDbOperations.saveUserResume(id, data);
 
-        // console.log(response);
+        // // From URL
+        // const resume = new ResumeParser(
+        //   "https://writing.colostate.edu/guides/documents/resume/functionalSample.pdf"
+        // );
+        // // //Convert to JSON Object
+        // resume
+        //   .parseToJSON()
+        //   .then((data) => {
+        //     console.log("Yay! ", data);
+        //   })
+        //   .catch((error) => {
+        //     console.error(error);
+        //   });
+
+        // const p =
+        //   __basedir + "\\" + req.filePath.toString().replaceAll("/", "\\");
+        // // p.replaceAll("\\", "/");
+        // pdfUtil.pdfToText(p),
+        //   function (err, data) {
+        //     if (err) {
+        //       // throw err;
+        //       console.log(err);
+        //     }
+        //     console.log(data); //print all text
+        //   };
+
+        const fileName = await userDbOperations.getUserResume(id);
+        if (fileName)
+          fs.unlink(fileName, (err, msg) => {
+            if (err) console.log(err);
+            console.log(msg);
+          });
+
+        const response = await userDbOperations.saveUserResume(id, data);
 
         if (response)
           return res.status(200).json({

@@ -7,7 +7,7 @@ const adminRoutes = require("./routes/admin_routes");
 const cookieparser = require("cookie-parser");
 let session = require("express-session");
 const { socketIO, socketUtils } = require("./utils/socketIO");
-
+const path = require('path');
 //////////////////////////////////
 require("dotenv").config();
 const PORT = process.env.PORT;
@@ -54,6 +54,7 @@ server.use("/api/v1/", commonRoutes);
 server.use("/api/v1/user", userRoutes);
 server.use("/api/v1/admin", adminRoutes);
 
+global.__basedir = path.resolve(__dirname);
 //////////////////////////////////
 // socketIO.on("connection", (socket) => {
 //   socket.on("sample", (text) => {

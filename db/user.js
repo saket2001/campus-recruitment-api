@@ -182,6 +182,21 @@ const userDbOperations = {
       return false;
     }
   },
+  getUserPictureFile: async (id) => {
+    try {
+      const data = await userResumeData.findOne(
+        { user_id: id },
+        { basic_details: 1 }
+      );
+
+      if(data){
+        return data?.basic_details?.profile_picture;
+      }
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
   saveUserPicture: async (id, filePath) => {
     try {
       const basicDetails = await userResumeData.findOne(
@@ -209,6 +224,12 @@ const userDbOperations = {
         { user_id: id },
         { basic_details: 1 }
       );
+
+      fs.unlink(basicDetails.basic_details.profile_picture, (err, msg) => {
+        if (err) console.log(err);
+        console.log(msg);
+      });
+
       await userResumeData.findOneAndUpdate(
         { user_id: id },
         {
@@ -303,7 +324,6 @@ const userDbOperations = {
       return false;
     }
   },
-  // TODO: work on its accuracy
   checkProfileStatus: async (id) => {
     const userData = await userResumeData.findOne(
       { user_id: id },
