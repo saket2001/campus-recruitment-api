@@ -5,6 +5,7 @@ const authMethods = require("../utils/auth");
 const ROLES_LIST = require("../constants/roles_list");
 const uploadLimit = 2 * 1024 * 1024; // 2MB
 const multer = require("multer");
+const rateLimit = require("express-rate-limit");
 ////////////////////////////////////////////
 const multerConfig1 = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -51,22 +52,40 @@ const profilePictureUpload = multer({
   storage: multerConfig2,
   limits: { fileSize: uploadLimit },
 });
+
+// rate limiting 
+const userAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
+});
+const userJobLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
+});
 ////////////////////////////////////////////
+
 // auth routes
-user_router.post("/signin", userControllers.authController.userSignIn);
-user_router.post("/register", userControllers.authController.userSignUp);
+user_router.post("/signin",userAuthLimiter, userControllers.authController.userSignIn);
+user_router.post(
+  "/register",
+  userAuthLimiter,
+  userControllers.authController.userSignUp
+);
 
 // user auth's using google
 user_router.post(
   "/sign-in-google",
+  userAuthLimiter,
   userControllers.authController.userSignInGoogle
 );
 user_router.post(
   "/sign-up-google",
+  userAuthLimiter,
   userControllers.authController.userSignUpGoogle
 );
 user_router.get(
   "/account-verification/:user_id/:token",
+  userAuthLimiter,
   userControllers.authController.userEmailVerification
 );
 
@@ -74,6 +93,7 @@ user_router.get(
 user_router.get(
   "/dashboard-analysis",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.dashboardAnalysis
 );
@@ -82,6 +102,7 @@ user_router.get(
 user_router.get(
   "/profile",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.getUserResumeData
 );
@@ -94,6 +115,7 @@ user_router.get(
 user_router.get(
   "/profile-picture",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.getUserProfilePic
 );
@@ -113,24 +135,28 @@ user_router.delete(
 user_router.post(
   "/profile/edit",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.saveUserResumeData
 );
 user_router.delete(
   "/profile/delete",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.deleteUserAccount
 );
 user_router.post(
   "/profile/forget-password",
   authMethods.authenticateToken,
+  userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.forgetUserPassword
 );
 user_router.post(
   "/profile/upload-resume",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   ResumeUpload.single("resume_file"),
   userControllers.profileController.uploadUserResume
@@ -138,12 +164,14 @@ user_router.post(
 user_router.get(
   "/get-resume/:user_id",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.recruiter),
   userControllers.profileController.getUserResume
 );
 user_router.post(
   "/change-pass",
   authMethods.authenticateToken,
+  userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.profileController.changeUserPassword
 );
@@ -182,26 +210,30 @@ user_router.get(
 user_router.get(
   "/get-job-recommendations/",
   authMethods.authenticateToken,
+  userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.getJobRecommendations
 );
 
-// group routes 
+// group routes
 user_router.get(
   "/get-my-group",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.getMyGroup
 );
 user_router.post(
   "/apply-group",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.applyToGroup
 );
 user_router.delete(
   "/leave-group",
   authMethods.authenticateToken,
+  userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.leaveGroup
 );
