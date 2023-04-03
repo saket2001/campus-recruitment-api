@@ -211,18 +211,18 @@ admin_routes.delete(
   authMethods.verifyUser(ROLES_LIST.admin),
   adminController.jobController.removeCandidate
 );
-// TODO Not working
-admin_routes.get(
-  "/download-job-data/:job_id/:view",
-  authMethods.authenticateToken,
-  authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.jobController.downloadJobApplicantsData
-);
+
 admin_routes.post(
   "/change-job-round-status",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.admin),
   adminController.jobController.updateCurrentStage
+);
+admin_routes.get(
+  "/get-job-round-details/:job_id/:view",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.admin),
+  adminController.jobController.getJobRoundDetails
 );
 admin_routes.post(
   "/add-job-round-details",

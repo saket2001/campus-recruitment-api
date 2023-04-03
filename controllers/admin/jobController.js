@@ -500,28 +500,28 @@ const JobController = {
       });
     }
   },
-  ViewJobRoundDetails: async (req, res) => {
-    try {
-      const { id } = req.user;
-      const response = await jobDbOperations.AddJobRoundDetails(id, data);
+  // ViewJobRoundDetails: async (req, res) => {
+  //   try {
+  //     const { id } = req.user;
+  //     const response = await jobDbOperations.AddJobRoundDetails(id, data);
 
-      return response
-        ? res.status(200).json({
-            isError: false,
-            message: "Added job round details successfully",
-          })
-        : res.status(200).json({
-            isError: true,
-            message: "Failed to add job round details!",
-          });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({
-        isError: true,
-        message: "Something went wrong on server!",
-      });
-    }
-  },
+  //     return response
+  //       ? res.status(200).json({
+  //           isError: false,
+  //           message: "Added job round details successfully",
+  //         })
+  //       : res.status(200).json({
+  //           isError: true,
+  //           message: "Failed to add job round details!",
+  //         });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return res.status(500).json({
+  //       isError: true,
+  //       message: "Something went wrong on server!",
+  //     });
+  //   }
+  // },
   deleteJobRoundDetails: async (req, res) => {
     try {
       const { id } = req.user;
@@ -669,10 +669,11 @@ const JobController = {
             isError: false,
             data,
           })
-        : res.status(500).json({
+        : res.status(200).json({
             isError: true,
             message: "Unable to get job round details at this moment!",
-          });
+        });
+      
     } catch (err) {
       console.log(err);
       return res.status(500).json({

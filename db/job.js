@@ -545,7 +545,9 @@ const jobDbOperations = {
         job_id: id,
         round_name: view,
       });
-      return roundDetails;
+      if (roundDetails) return roundDetails;
+      return false;
+
     } catch (err) {
       console.log(err);
       return false;
