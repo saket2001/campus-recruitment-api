@@ -370,7 +370,7 @@ const userDbOperations = {
     return percentComplete;
   },
   // job routes
-  applyToJob: async (job_id, user_id) => {
+  applyToJob: async (job_id, user_id,application) => {
     try {
       // check if job exists
       const jobDetailsData = await jobDetails.findOne({ job_id: job_id });
@@ -398,6 +398,7 @@ const userDbOperations = {
         if (d.name === "applicants") {
           d?.data.push({
             user_id: user_id,
+            application,
             created_at: new Date(),
           });
         }
@@ -669,6 +670,15 @@ const userDbOperations = {
       }
       return data;
     } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  getAdditionalQuestions: async (job_id) => {
+    try {
+      const data = await job.findById(job_id, { additional_questions: 1 });
+      return data ? data : false;
+    } catch(err) {
       console.log(err);
       return false;
     }

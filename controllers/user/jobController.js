@@ -9,6 +9,8 @@ const JobController = {
     try {
       const { job_id } = req.params;
       const { id: user_id, roles } = req.user;
+      const { data } = req.body;
+      console.log(data)
 
       // if not user
       if (!roles.includes(201212))
@@ -23,11 +25,10 @@ const JobController = {
       if (!user.is_verified)
         return res.status(200).json({
           isError: true,
-          message:
-            "Only verified profiles can apply to the jobs!",
+          message: "Only verified profiles can apply to the jobs!",
         });
 
-      const response = await userDbOperations.applyToJob(job_id, user_id);
+      const response = await userDbOperations.applyToJob(job_id, user_id, data);
 
       if (response === 1)
         return res.status(200).json({
@@ -180,10 +181,10 @@ const JobController = {
       // );
 
       const data = await flask_response.json();
-      console.log(data)
+      console.log(data);
       const parsedData = JSON.parse(data?.data);
       const percentageData = JSON.parse(data?.percentageData);
-      console.log(parsedData?.length, parsedData,percentageData);
+      console.log(parsedData?.length, parsedData, percentageData);
       // save only when there are recommendations
       // alert user
       if (parsedData?.length > 0) {
@@ -247,5 +248,27 @@ const JobController = {
   },
 
   // common routes
+  getAdditionalQuestions: async (req, res) => {
+    try {
+      const { job_id } = req.params;
+      const response = await userDbOperations.getAdditionalQuestions(job_id);
+
+      return response
+        ? res.status(200).json({
+            isError: false,
+            data: response,
+          })
+        : res.status(200).json({
+            isError: true,
+            message: "No additional questions found",
+          });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  },
 };
 module.exports = JobController;

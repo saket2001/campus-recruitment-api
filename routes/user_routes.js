@@ -60,7 +60,7 @@ const userAuthLimiter = rateLimit({
 });
 const userJobLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
+  max: 15, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
 });
 ////////////////////////////////////////////
 
@@ -213,6 +213,12 @@ user_router.get(
   userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.getJobRecommendations
+);
+user_router.get(
+  "/get-job-additional-questions/:job_id",
+  authMethods.authenticateToken,
+  authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
+  userControllers.jobController.getAdditionalQuestions
 );
 
 // group routes

@@ -9,8 +9,8 @@ let session = require("express-session");
 const { socketIO, socketUtils } = require("./utils/socketIO");
 // const path = require('path');
 // const rateLimit = require('express-rate-limit')
-//////////////////////////////////
 require("dotenv").config();
+//////////////////////////////////
 const PORT = process.env.PORT;
 const server = express();
 server.use(express.json());

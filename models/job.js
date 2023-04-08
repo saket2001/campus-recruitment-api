@@ -69,7 +69,8 @@ const JobSchema = mongoose.Schema({
     type:String,
   },
   job_stages: [],
-  skills:[]
+  skills:[],
+  additional_questions:[]
 });
 
 module.exports = mongoose.model('Job', JobSchema);
