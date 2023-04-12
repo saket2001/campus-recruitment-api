@@ -86,7 +86,7 @@ const commonMethods = {
     // return message of error or success
   },
   sendWhatsappMsg: async (obj) => {},
-  generateUUID: async () => uuidv4(),
+  generateUUID: () => uuidv4(),
 };
 
 module.exports = commonMethods;

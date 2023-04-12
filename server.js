@@ -60,7 +60,7 @@ server.use("/api/v1/", commonRoutes);
 server.use("/api/v1/user", userRoutes);
 server.use("/api/v1/admin", adminRoutes);
 
-// global.__basedir = path.resolve(__dirname);
+global.__basedir = __dirname;
 //////////////////////////////////
 // socketIO.on("connection", (socket) => {
 //   socket.on("sample", (text) => {

@@ -1,8 +1,8 @@
-const ROLES_LIST = require("../../constants/roles_list");
 const userDbOperations = require("../../db/user");
 const job = require("../../models/job");
 const commonMethods = require("../../utils/common");
-
+const needle = require("needle");
+const fs = require("fs");
 ////////////////////////////
 const JobController = {
   applyToJob: async (req, res) => {
@@ -173,21 +173,17 @@ const JobController = {
     const { id } = req.user;
     try {
       // make request to flask server
-      const flask_response = await fetch(
+      const flask_response = await needle(
+        "get",
         `http://127.0.0.1:5000/job-recommender?user_id=${id}`
       );
-      // const flask_response = await fetch(
-      //   `${process.env.FLASK_BACKEND_SERVER}/job-recommender?user_id=${id}`
-      // );
 
-      const data = await flask_response.json();
-      console.log(data);
+      const data = await flask_response.body;
       const parsedData = JSON.parse(data?.data);
       const percentageData = JSON.parse(data?.percentageData);
-      console.log(parsedData?.length, parsedData, percentageData);
       // save only when there are recommendations
       // alert user
-      if (parsedData?.length > 0) {
+      if (parsedData?.length>0) {
         const jobIds = parsedData?.map((j) => {
           return j._id["$oid"];
         });
@@ -270,5 +266,44 @@ const JobController = {
       });
     }
   },
+  downloadResumeFile: async (req, res) => {
+    try {
+      const { user_id } = req.params;
+      if(!user_id) return res.status(200).json({
+        isError: true,
+        message: "User id is required to download the user resume!",
+      }); 
+
+      // getting fileName
+      const data = await userDbOperations.getUserResume(user_id);
+
+      if (!data) return res.status(200).json({
+        isError: true,
+        message: "No resume found for given user id!",
+      }); 
+      
+      return res.sendFile(
+        "\\"+ data,
+        { root: __basedir },
+        function (err) {
+          if (err) {
+             return res.status(200).json({
+               isError: true,
+               message: "No resume found for given user id!",
+             }); 
+          } else {
+            console.log("Sent:", data);
+          }
+        }
+      );
+
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        isError: true,
+        message: "Something went wrong on server!",
+      });
+    }
+  }
 };
 module.exports = JobController;

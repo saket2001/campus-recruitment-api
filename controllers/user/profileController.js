@@ -1,9 +1,10 @@
+const { randomUUID } = require("crypto");
 const userDbOperations = require("../../db/user");
 const commonMethods = require("../../utils/common");
 const fs = require("fs");
-const path = require("path");
-const ResumeParser = require("simple-resume-parser");
-const pdfUtil = require("pdf-to-text");
+const needle = require("needle");
+const userResumeData = require("../../models/userResumeData");
+
 ///////////////////////////////////
 
 //  console.log(err);
@@ -385,49 +386,188 @@ const profileController = {
           resume_file: req.filePath,
         };
 
-        // // From URL
-        // const resume = new ResumeParser(
-        //   "https://writing.colostate.edu/guides/documents/resume/functionalSample.pdf"
-        // );
-        // // //Convert to JSON Object
-        // resume
-        //   .parseToJSON()
-        //   .then((data) => {
-        //     console.log("Yay! ", data);
-        //   })
-        //   .catch((error) => {
-        //     console.error(error);
-        //   });
+        const isFileUploaded = await userDbOperations.saveUserResume(id, data);
 
-        // const p =
-        //   __basedir + "\\" + req.filePath.toString().replaceAll("/", "\\");
-        // // p.replaceAll("\\", "/");
-        // pdfUtil.pdfToText(p),
-        //   function (err, data) {
-        //     if (err) {
-        //       // throw err;
-        //       console.log(err);
-        //     }
-        //     console.log(data); //print all text
-        //   };
+        // parse file from another server
+        let parsedDataResponse = [];
+        if (isFileUploaded) {
+          console.log("Parsing data started....");
 
-        const fileName = await userDbOperations.getUserResume(id);
-        if (fileName)
-          fs.unlink(fileName, (err, msg) => {
-            if (err) console.log(err);
-            console.log(msg);
-          });
+          // reading file and sending it to ml server
+          fs.readFile(
+            __basedir + "\\" + data.resume_file,
+            "binary",
+            async (err, data) => {
+              if (err) {
+                console.error({ err });
+                return res.status(200).json({
+                  isError: true,
+                  message: "Failed to parse the uploaded file",
+                });
+              } else {
+                // make response to ml server
+                const response = await needle(
+                  "post",
+                  `http://127.0.0.1:5000/user-resume-parser?user_id=${id}`,
+                  {
+                    body: data,
+                  }
+                );
+                // parse only if no error in fetch
+                if (response.statusCode === 200) {
+                  parsedDataResponse = await JSON.parse(response.body.data);
+                  // console.log({ parsedDataResponse });
 
-        const response = await userDbOperations.saveUserResume(id, data);
+                  // filter data
+                  let filteredData = {
+                    skills: { data: [] },
+                    languages: { data: [] },
+                  };
 
-        if (response)
+                  // select data like skills, education
+                  const temp = Object.entries(parsedDataResponse);
+                  temp.forEach((obj) => {
+                    if (obj[0] === "SKILLS") {
+                      // splitting skills and adding id
+                      const arr = obj[1].split(" ");
+                      arr.forEach((skill) => {
+                        filteredData["skills"].data.push({
+                          id: commonMethods.generateUUID(),
+                          name: skill,
+                        });
+                      });
+                    } else if (obj[0] === "LANGUAGES") {
+                      // splitting skills and adding id
+                      const arr = obj[1].split(" ");
+                      arr.forEach((language) => {
+                        filteredData["languages"].data.push({
+                          id: commonMethods.generateUUID(),
+                          name: language,
+                        });
+                      });
+                    }
+                  });
+                  console.log(filteredData);
+
+                  // get existing resume data so not to lose other resume data
+                  let existingData = await userResumeData.findOne({ user_id: id });
+                  console.log(existingData);
+
+                  // let newData = { ...existingData, ...filteredData };
+                  // console.log(newData);
+                  let userResumeDataObj = {
+                    basic_details: {
+                      full_name: "",
+                      email: "",
+                      age: "",
+                      contact: "",
+                      summary: "",
+                      address: "",
+                      college: "",
+                      branch: "",
+                      admission_number: "",
+                      profilePicture: "", // filePath
+                      gender: "",
+                    },
+                    skills: {
+                      isActive: true,
+                      data: [],
+                    },
+                    education: {
+                      "10th": {
+                        name: "",
+                        year: "",
+                        percentage: "",
+                      },
+                      "12th": {
+                        name: "",
+                        year: "",
+                        percentage: "",
+                      },
+                      engineering: {
+                        name: "",
+                        year: "",
+                        percentage: "",
+                        sem: "",
+                      },
+                    },
+                    experience: {
+                      isActive: true,
+                      data: [],
+                    },
+                    certificates: {
+                      isActive: false,
+                      data: [],
+                    },
+                    projects: {
+                      isActive: false,
+                      data: [],
+                    },
+                    hobbies: {
+                      isActive: false,
+                      data: [],
+                    },
+                    languages: {
+                      isActive: false,
+                      data: [],
+                    },
+                    extraCurricular: {
+                      isActive: false,
+                      data: [],
+                    },
+                    last_edited: "",
+                  };
+                  for (const key in existingData) {
+                    userResumeDataObj[key] = existingData[key];
+                  }
+                  console.log(userResumeDataObj)
+
+                  // save data in user resume data db
+                  const response2 = await userDbOperations.saveUserResumeData(
+                    id,
+                    {
+                      ...userResumeDataObj,
+                      ...filteredData,
+                    }
+                  );
+                  response2
+                    ? console.log("saved data")
+                    : console.log("failed to save data");
+
+                } else {
+                  return res.status(200).json({
+                    isError: true,
+                    message: "Failed to parse uploaded file! Please try again",
+                  });
+                }
+              }
+            }
+          );
+        }
+
+        // send response
+        if (isFileUploaded) {
+          const fileName = await userDbOperations.getUserResume(id);
+          // delete other file of user
+          // if (fileName)
+          //   fs.unlink(fileName, (err, msg) => {
+          //     if (err) {
+          //       console.log({ err });
+          //       return res.status(200).json({
+          //         isError: true,
+          //         message: "Failed to upload file! Please try again.",
+          //       });
+          //     }
+          //   });
           return res.status(200).json({
             isError: false,
-            message: "File uploaded successfully",
-          });
+            message:
+              "Resume uploaded successfully and it will be parsed and save in sometime.",
+            });
+          }
         else
           return res.status(200).json({
-            isError: false,
+            isError: true,
             message: "Failed to upload file! Please try again",
           });
       }

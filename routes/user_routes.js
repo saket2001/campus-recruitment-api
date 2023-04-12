@@ -156,7 +156,7 @@ user_router.post(
 user_router.post(
   "/profile/upload-resume",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   ResumeUpload.single("resume_file"),
   userControllers.profileController.uploadUserResume
@@ -219,6 +219,13 @@ user_router.get(
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.jobController.getAdditionalQuestions
+);
+user_router.get(
+  "/download-resume-file/:user_id",
+  // authMethods.authenticateToken,
+  // authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
+  // userAuthLimiter,
+  userControllers.jobController.downloadResumeFile
 );
 
 // group routes

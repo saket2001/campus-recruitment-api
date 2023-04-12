@@ -251,7 +251,7 @@ const userDbOperations = {
         { user_id: id },
         { ...data }
       );
-      // console.log(dbUserData);
+      console.log(dbUserData);
 
       if (dbUserData.length === 0 || !dbUserData) return false;
 
@@ -275,7 +275,6 @@ const userDbOperations = {
         { user_id: id },
         { ...data }
       );
-      // console.log(dbUserData);
 
       if (dbUserData.length === 0 || !dbUserData) return false;
 
@@ -290,7 +289,6 @@ const userDbOperations = {
         { user_id: id },
         { resume_file: 1, _id: 1, user_id: 1 }
       );
-      console.log(data);
       // if (data?.user_id !== id) return 2;
 
       if (data === [] || !data) return false;
