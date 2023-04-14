@@ -447,92 +447,24 @@ const profileController = {
                       });
                     }
                   });
-                  console.log(filteredData);
+                  // console.log(filteredData);
 
                   // get existing resume data so not to lose other resume data
                   let existingData = await userResumeData.findOne({ user_id: id });
+
+                  // saving new data
+                  existingData["skills"] = filteredData?.skills;
+                  existingData["languages"] = filteredData?.languages;
                   console.log(existingData);
 
-                  // let newData = { ...existingData, ...filteredData };
-                  // console.log(newData);
-                  let userResumeDataObj = {
-                    basic_details: {
-                      full_name: "",
-                      email: "",
-                      age: "",
-                      contact: "",
-                      summary: "",
-                      address: "",
-                      college: "",
-                      branch: "",
-                      admission_number: "",
-                      profilePicture: "", // filePath
-                      gender: "",
-                    },
-                    skills: {
-                      isActive: true,
-                      data: [],
-                    },
-                    education: {
-                      "10th": {
-                        name: "",
-                        year: "",
-                        percentage: "",
-                      },
-                      "12th": {
-                        name: "",
-                        year: "",
-                        percentage: "",
-                      },
-                      engineering: {
-                        name: "",
-                        year: "",
-                        percentage: "",
-                        sem: "",
-                      },
-                    },
-                    experience: {
-                      isActive: true,
-                      data: [],
-                    },
-                    certificates: {
-                      isActive: false,
-                      data: [],
-                    },
-                    projects: {
-                      isActive: false,
-                      data: [],
-                    },
-                    hobbies: {
-                      isActive: false,
-                      data: [],
-                    },
-                    languages: {
-                      isActive: false,
-                      data: [],
-                    },
-                    extraCurricular: {
-                      isActive: false,
-                      data: [],
-                    },
-                    last_edited: "",
-                  };
-                  for (const key in existingData) {
-                    userResumeDataObj[key] = existingData[key];
-                  }
-                  console.log(userResumeDataObj)
-
-                  // save data in user resume data db
-                  const response2 = await userDbOperations.saveUserResumeData(
+                  const didSaved = await userDbOperations.saveUserResumeData(
                     id,
-                    {
-                      ...userResumeDataObj,
-                      ...filteredData,
-                    }
+                    existingData
                   );
-                  response2
-                    ? console.log("saved data")
-                    : console.log("failed to save data");
+
+                  didSaved
+                    ? console.log("Saved parsed resume data")
+                    : console.log("Failed to save parsed data!");
 
                 } else {
                   return res.status(200).json({
