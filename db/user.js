@@ -189,7 +189,7 @@ const userDbOperations = {
         { basic_details: 1 }
       );
 
-      if(data){
+      if (data) {
         return data?.basic_details?.profile_picture;
       }
     } catch (err) {
@@ -251,7 +251,7 @@ const userDbOperations = {
         { user_id: id },
         { ...data }
       );
-      console.log(dbUserData);
+      // console.log(dbUserData);
 
       if (dbUserData.length === 0 || !dbUserData) return false;
 
@@ -317,7 +317,7 @@ const userDbOperations = {
 
         return email;
       }
-    } catch(err) {
+    } catch (err) {
       console.log(err);
       return false;
     }
@@ -368,7 +368,7 @@ const userDbOperations = {
     return percentComplete;
   },
   // job routes
-  applyToJob: async (job_id, user_id,application) => {
+  applyToJob: async (job_id, user_id, application) => {
     try {
       // check if job exists
       const jobDetailsData = await jobDetails.findOne({ job_id: job_id });
@@ -517,7 +517,7 @@ const userDbOperations = {
         { user_id: user_id },
         { recommendations: 1, similarityPercentage: 1 }
       );
-      console.log(data);
+      // console.log(data);
       for (const job of data) {
         temp1 = job["recommendations"];
         recommendationsData.push(...temp1);
@@ -676,7 +676,7 @@ const userDbOperations = {
     try {
       const data = await job.findById(job_id, { additional_questions: 1 });
       return data ? data : false;
-    } catch(err) {
+    } catch (err) {
       console.log(err);
       return false;
     }
@@ -892,7 +892,6 @@ const userDbOperations = {
     }
   },
   // notifications
-  // TODO: Add seen logic
   saveNotification: async (data) => {
     try {
       const newNotification = new notification(data);

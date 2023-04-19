@@ -68,24 +68,24 @@ const userJobLimiter = rateLimit({
 user_router.post("/signin",userAuthLimiter, userControllers.authController.userSignIn);
 user_router.post(
   "/register",
-  userAuthLimiter,
+  // userAuthLimiter,
   userControllers.authController.userSignUp
 );
 
 // user auth's using google
 user_router.post(
   "/sign-in-google",
-  userAuthLimiter,
+  // userAuthLimiter,
   userControllers.authController.userSignInGoogle
 );
 user_router.post(
   "/sign-up-google",
-  userAuthLimiter,
+  // userAuthLimiter,
   userControllers.authController.userSignUpGoogle
 );
 user_router.get(
   "/account-verification/:user_id/:token",
-  userAuthLimiter,
+  // userAuthLimiter,
   userControllers.authController.userEmailVerification
 );
 
@@ -93,7 +93,7 @@ user_router.get(
 user_router.get(
   "/dashboard-analysis",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.dashboardAnalysis
 );
@@ -102,7 +102,7 @@ user_router.get(
 user_router.get(
   "/profile",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.getUserResumeData
 );
@@ -115,7 +115,7 @@ user_router.get(
 user_router.get(
   "/profile-picture",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.getUserProfilePic
 );
@@ -135,21 +135,21 @@ user_router.delete(
 user_router.post(
   "/profile/edit",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.saveUserResumeData
 );
 user_router.delete(
   "/profile/delete",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.deleteUserAccount
 );
 user_router.post(
   "/profile/forget-password",
   authMethods.authenticateToken,
-  userAuthLimiter,
+  // userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.forgetUserPassword
 );
@@ -164,14 +164,14 @@ user_router.post(
 user_router.get(
   "/get-resume/:user_id",
   authMethods.authenticateToken,
-  userJobLimiter,
-  authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.recruiter),
+  // userJobLimiter,
+  authMethods.verifyUser(ROLES_LIST.user, ROLES_LIST.admin),
   userControllers.profileController.getUserResume
 );
 user_router.post(
   "/change-pass",
   authMethods.authenticateToken,
-  userAuthLimiter,
+  // userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.profileController.changeUserPassword
 );
@@ -210,7 +210,7 @@ user_router.get(
 user_router.get(
   "/get-job-recommendations/",
   authMethods.authenticateToken,
-  userAuthLimiter,
+  // userAuthLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.jobController.getJobRecommendations
 );
@@ -232,21 +232,21 @@ user_router.get(
 user_router.get(
   "/get-my-group",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.getMyGroup
 );
 user_router.post(
   "/apply-group",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.applyToGroup
 );
 user_router.delete(
   "/leave-group",
   authMethods.authenticateToken,
-  userJobLimiter,
+  // userJobLimiter,
   authMethods.verifyUser(ROLES_LIST.user),
   userControllers.groupController.leaveGroup
 );

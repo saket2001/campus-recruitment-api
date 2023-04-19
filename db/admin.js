@@ -273,45 +273,25 @@ const adminDbOperations = {
       return false;
     }
   },
-  deleteRecruiter: async (user_id) => {
+  toggleUserVerification: async (user_id) => {
     try {
-      if (!user_id) return 1;
-      const res = await recruiter.findByIdAndDelete(user_id);
-      return res ? true : false;
-    } catch {
-      return false;
-    }
-  },
-  deleteCompany: async (company_id) => {
-    try {
-      if (!company_id) return 1;
-      const res = await company.findByIdAndDelete(company_id);
-      return res ? true : false;
-    } catch {
-      return false;
-    }
-  },
-  toggleCompanyVerification: async (company_id, data) => {
-    try {
-      if (!company_id) return 1;
-      const res = await company.findByIdAndUpdate(company_id, {
-        isVerified: data,
+      const userData = await user.findById(user_id, {
+        is_verified: 1,
       });
 
-      return res ? true : false;
-    } catch {
-      return false;
-    }
-  },
-  toggleRecruiterVerification: async (user_id, data) => {
-    try {
-      if (!user_id) return 1;
-      const res = await recruiter.findByIdAndUpdate(user_id, {
-        isVerified: data,
+      // look if user found
+      if (!userData) return 1;
+
+      // change status
+      userData.is_verified = !userData.is_verified;
+      // save
+      await user.findByIdAndUpdate(user_id, {
+        is_verified: userData.is_verified,
       });
 
-      return res ? true : false;
-    } catch {
+      return true;
+    } catch (err) {
+      console.log(err);
       return false;
     }
   },
@@ -368,7 +348,7 @@ const adminDbOperations = {
         const applicants = job?.job_stages.find((d) => d.name === "applicants");
         jobResponses.push(applicants?.data?.length);
       });
-      
+
       const allJobs = await job.find({ created_by: id, is_active: true });
       const jobResponsesName = allJobs?.map((j) => `${j.role}`);
       data["jobResponses"] = {

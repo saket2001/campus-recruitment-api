@@ -95,47 +95,17 @@ admin_routes.get(
   authMethods.verifyUser(ROLES_LIST.admin),
   adminController.manageController.getAllUsers
 );
-admin_routes.get(
-  "/get-recruiters/:year",
-  authMethods.authenticateToken,
-  authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.manageController.getAllRecruiters
-);
-admin_routes.get(
-  "/get-companies/:year",
-  authMethods.authenticateToken,
-  authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.manageController.getAllCompanies
-);
 admin_routes.delete(
   "/remove-candidate/:user_id",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.admin),
   adminController.manageController.deleteUser
 );
-admin_routes.delete(
-  "/remove-recruiter/:user_id",
+admin_routes.get(
+  "/verify-user/:user_id",
   authMethods.authenticateToken,
   authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.manageController.deleteRecruiter
-);
-admin_routes.delete(
-  "/remove-company/:company_id",
-  authMethods.authenticateToken,
-  authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.manageController.deleteCompany
-);
-admin_routes.post(
-  "/verify-company/:company_id",
-  authMethods.authenticateToken,
-  authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.manageController.toggleCompanyVerification
-);
-admin_routes.post(
-  "/verify-recruiter/:user_id",
-  authMethods.authenticateToken,
-  authMethods.verifyUser(ROLES_LIST.admin),
-  adminController.manageController.toggleRecruiterVerification
+  adminController.manageController.toggleUserVerification
 );
 
 // dashboard

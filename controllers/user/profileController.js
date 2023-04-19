@@ -73,6 +73,7 @@ const profileController = {
   getUserResume: async (req, res) => {
     try {
       const { user_id } = req.params || req.user;
+      console.log(user_id);
       const fileName = await userDbOperations.getUserResume(user_id);
 
       if (!fileName)
@@ -97,20 +98,14 @@ const profileController = {
             message: "Error while getting the resume file from the server",
           });
         }
-        // pdfUtil.pdfToText(fileName, function (err, data) {
-        //   if (err) throw err;
-        //   console.log(data); //print all text
-        // });
-        // console.log(typeof data);
         return res.status(200).json({
           isError: false,
           fileName,
         });
       });
 
-      // return res.status(200).download(fileName);
     } catch (err) {
-      console.log(err);
+      console.log({err});
       return res.status(500).json({
         isError: true,
         message: "Something went wrong on the server!",
@@ -455,7 +450,7 @@ const profileController = {
                   // saving new data
                   existingData["skills"] = filteredData?.skills;
                   existingData["languages"] = filteredData?.languages;
-                  console.log(existingData);
+                  // console.log(existingData);
 
                   const didSaved = await userDbOperations.saveUserResumeData(
                     id,
