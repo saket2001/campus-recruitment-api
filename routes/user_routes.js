@@ -65,7 +65,7 @@ const userJobLimiter = rateLimit({
 ////////////////////////////////////////////
 
 // auth routes
-user_router.post("/signin",userAuthLimiter, userControllers.authController.userSignIn);
+user_router.post("/signin", userControllers.authController.userSignIn);
 user_router.post(
   "/register",
   // userAuthLimiter,

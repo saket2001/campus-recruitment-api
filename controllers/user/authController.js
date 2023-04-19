@@ -107,8 +107,7 @@ const authController = {
         to: body?.user_email?.toString(),
         viewName: "userVerification",
         context: {
-          user_id: response.SavedUser._id.toString(),
-          token: token,
+          link:`http://localhost:3000/auth/user/account-verification?id=${response.SavedUser._id.toString()}&token=${token}`,
           time: new Date().toDateString(),
         },
       });

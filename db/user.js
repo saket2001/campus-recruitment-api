@@ -23,7 +23,6 @@ const userDbOperations = {
     if (userAlreadyExists) return 1;
 
     // create token and user
-
     const newUser = new user(userData);
     const SavedUser = await newUser.save();
 
@@ -36,11 +35,15 @@ const userDbOperations = {
     const newUserResume = {
       user_id: SavedUser._id,
       basic_details: {
-        full_name: "",
-        email: "",
-        contact: "",
+        full_name: userData.full_name,
+        email: userData.email,
+        contact: userData.contact,
+        gender: userData.gender,
+        college: userData.college_name,
+        branch: userData.college_branch,
         summary: "",
         address: "",
+        admission_number: "",
         profile_picture: "",
       },
       education: {
@@ -89,6 +92,7 @@ const userDbOperations = {
         data: [],
       },
       created_at: new Date(),
+      last_edited: new Date(),
     };
     const newUserResumeData = new userResumeData(newUserResume);
     newUserResumeData.save();
@@ -163,6 +167,7 @@ const userDbOperations = {
       let data = {
         details: {},
         resume_file: "",
+        is_verified: "",
       };
       data["details"] = await userResumeData.findOne(
         { user_id: id },
@@ -175,8 +180,11 @@ const userDbOperations = {
       );
 
       data["resume_file"] = resumeData.resume_file;
-      if (data === [] || !data) return false;
 
+      const userDetail = await user.findById(id, { is_verified: 1 });
+      data["is_verified"] = userDetail?.is_verified;
+
+      if (data === [] || !data) return false;
       return data;
     } catch {
       return false;
@@ -646,8 +654,20 @@ const userDbOperations = {
       const isUserInCurrRound = entries.find(
         (u) => u.email === data["userDetails"].email
       );
-      data["userStatus"] = isUserInCurrRound;
+      // data["userStatus"] = isUserInCurrRound ? "Selected" : "Not Selected";
+      // data["userStatus"] = isUserInCurrRound;
+      console.log(curr_stage);
 
+      const userInRounds = ["Applicants"];
+      // finding in which round user in
+      temp.job_stages.forEach((round) => {
+        if (round.name !== "applicants") {
+          const present = round.data.find((u) => u.user_id === user_id);
+          present && userInRounds.push(round.name);
+        }
+      });
+      console.log(userInRounds);
+      data["userStatus"] = `${userInRounds[userInRounds.length-1]}`
       // sending extra round details
       if (
         [
@@ -655,14 +675,13 @@ const userDbOperations = {
           "technical interview",
           "hr interview",
           "round",
-        ].includes(curr_stage)
+        ].includes(curr_stage.toLowerCase())
       ) {
         temp = await jobRoundDetails.findOne(
           {
             job_id: job_id,
-            round_name: curr_stage,
           },
-          { recruiter_id: 0 }
+          { admin_id: 0 }
         );
         if (temp) data["roundInformation"] = temp;
       }

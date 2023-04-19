@@ -388,9 +388,9 @@ const jobDbOperations = {
       return false;
     }
   },
-  addJobRoundDetails: async (rec_id, data) => {
+  addJobRoundDetails: async (id, data) => {
     try {
-      data["recruiter_id"] = rec_id;
+      data["admin_id"] = id;
       const newDetails = new jobRoundDetails(data);
       await newDetails.save();
       return true;
