@@ -163,6 +163,7 @@ const jobDbOperations = {
         usersData: null,
         usersStatus: null,
         job_info: null,
+        users_resume_score:[],
       };
       let userIDs = [];
 
@@ -172,9 +173,8 @@ const jobDbOperations = {
         company_name: 1,
         created_at: 1,
         current_stage: 1,
+        skills: 1,
       });
-
-      // const recruiter_name=await recruiter.findById()
 
       // for now applicants
       const jobDetailsData = await jobDetails.findOne({ job_id: id });
@@ -191,10 +191,11 @@ const jobDbOperations = {
       });
 
       // converting ids to objects id
-      returnData["usersData"] = await userResumeData.find(
+      const applicantsData = await userResumeData.find(
         { user_id: { $in: obj_ids } },
         { basic_details: 1, education: 1, user_id: 1, skills: 1 }
       );
+      returnData["usersData"] = applicantsData;
 
       returnData["usersStatus"] = await user.find(
         { _id: { $in: obj_ids } },
@@ -203,8 +204,30 @@ const jobDbOperations = {
         }
       );
 
-      // get round details if round is aptitude test or interview
+      // resume scoring
+      // TODO: Doing it by comparing just skills for now
+      const requiredSkillsSet = returnData?.job_info?.skills[0]?.split(",");
+      // checking skills of each user
+      applicantsData.forEach((user) => {
+        let userScore = 0;
 
+        // getting user's skills
+        let skillsArr = user.skills?.data?.map((s) => s.name);
+
+        // comparing skills
+        skillsArr.forEach((skill, i) => {
+          const isPresent = requiredSkillsSet.find((s) => s.includes(skill));
+          if (isPresent) {
+            userScore++;
+          }
+        });
+
+        // saving score
+        returnData["users_resume_score"].push(userScore * 10);
+      });
+
+      // get round details if round is aptitude test or interview
+      console.log(returnData["users_resume_score"]);
       return returnData;
     } catch (err) {
       console.log(err);
@@ -464,13 +487,13 @@ const jobDbOperations = {
         role: [],
         location: [],
         company_name: [],
-        category:[]
+        category: [],
       };
 
       // !TODO: add company name too
       const dbData = await job.find(
         {},
-        { _id: 0, role: 1, location: 1, company_name: 1,category:1 }
+        { _id: 0, role: 1, location: 1, company_name: 1, category: 1 }
       );
       // console.log(dbData);
 
@@ -547,7 +570,6 @@ const jobDbOperations = {
       });
       if (roundDetails) return roundDetails;
       return false;
-
     } catch (err) {
       console.log(err);
       return false;

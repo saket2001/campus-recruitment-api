@@ -4,7 +4,11 @@ const commonMethods = require("../../utils/common");
 const fs = require("fs");
 const needle = require("needle");
 const userResumeData = require("../../models/userResumeData");
-
+const {
+  socketIoOperations,
+  socketUtils,
+  socketIO,
+} = require("../../utils/socketIO");
 ///////////////////////////////////
 
 //  console.log(err);
@@ -103,9 +107,8 @@ const profileController = {
           fileName,
         });
       });
-
     } catch (err) {
-      console.log({err});
+      console.log({ err });
       return res.status(500).json({
         isError: true,
         message: "Something went wrong on the server!",
@@ -411,12 +414,13 @@ const profileController = {
                 // parse only if no error in fetch
                 if (response.statusCode === 200) {
                   parsedDataResponse = await JSON.parse(response.body.data);
-                  // console.log({ parsedDataResponse });
+                  console.log({ parsedDataResponse });
 
                   // filter data
                   let filteredData = {
                     skills: { data: [] },
                     languages: { data: [] },
+                    experience: { data: [] },
                   };
 
                   // select data like skills, education
@@ -431,7 +435,7 @@ const profileController = {
                           name: skill,
                         });
                       });
-                    } else if (obj[0] === "LANGUAGES") {
+                    } else if (obj[0] === "LANGUAGE") {
                       // splitting skills and adding id
                       const arr = obj[1].split(" ");
                       arr.forEach((language) => {
@@ -440,16 +444,28 @@ const profileController = {
                           name: language,
                         });
                       });
+                    } else if (obj[0] === "WORKED AS") {
+                      // splitting skills and adding id
+                      // const arr = obj[1].split(" ");
+                      filteredData["experience"].data.push({
+                        id: commonMethods.generateUUID(),
+                        name: obj[1],
+                        year: "",
+                        summary: "",
+                      });
                     }
                   });
                   // console.log(filteredData);
 
                   // get existing resume data so not to lose other resume data
-                  let existingData = await userResumeData.findOne({ user_id: id });
+                  let existingData = await userResumeData.findOne({
+                    user_id: id,
+                  });
 
                   // saving new data
                   existingData["skills"] = filteredData?.skills;
                   existingData["languages"] = filteredData?.languages;
+                  existingData["experience"] = filteredData?.experience;
                   // console.log(existingData);
 
                   const didSaved = await userDbOperations.saveUserResumeData(
@@ -457,10 +473,30 @@ const profileController = {
                     existingData
                   );
 
+                  if (didSaved) {
+                    // by notification system
+                    const receiver = socketUtils.GetUserFromSession(id);
+                    // if user is online
+                    if (receiver) {
+                      socketIO.to(receiver?.socket_id).emit("resume-parsed", {
+                        title: "Resume parsed update",
+                        body: `Your resume has been parsed successfully!`,
+                        type: "alert-notification",
+                      });
+                      console.log("Notification Send");
+                    } else {
+                      console.log("User offline!");
+                      await userDbOperations.saveNotification({
+                        title: "Resume parsed update",
+                        body: "Your resume has been parsed successfully!",
+                        receiver_id: id,
+                      });
+                    }
+                  }
+
                   didSaved
                     ? console.log("Saved parsed resume data")
                     : console.log("Failed to save parsed data!");
-
                 } else {
                   return res.status(200).json({
                     isError: true,
@@ -490,9 +526,8 @@ const profileController = {
             isError: false,
             message:
               "Resume uploaded successfully and it will be parsed and save in sometime.",
-            });
-          }
-        else
+          });
+        } else
           return res.status(200).json({
             isError: true,
             message: "Failed to upload file! Please try again",

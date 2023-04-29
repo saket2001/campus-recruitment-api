@@ -350,7 +350,7 @@ const adminDbOperations = {
       });
 
       const allJobs = await job.find({ created_by: id, is_active: true });
-      const jobResponsesName = allJobs?.map((j) => `${j.role}`);
+      const jobResponsesName = allJobs?.map((j) => `${j.company_name}`);
       data["jobResponses"] = {
         labels: jobResponsesName,
         datasets: [

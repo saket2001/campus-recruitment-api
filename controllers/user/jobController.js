@@ -179,11 +179,12 @@ const JobController = {
       );
 
       const data = await flask_response.body;
+      console.log(data);
       const parsedData = JSON.parse(data?.data);
       const percentageData = JSON.parse(data?.percentageData);
       // save only when there are recommendations
       // alert user
-      if (parsedData?.length>0) {
+      if (data.isError !== "True" && parsedData?.length>0) {
         const jobIds = parsedData?.map((j) => {
           return j._id["$oid"];
         });

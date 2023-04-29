@@ -752,9 +752,9 @@ const userDbOperations = {
             { created_at: { $lt: new Date(year + 1 + "") } },
           ],
         },
-        { company_name: 1, role: 1, _id: 1 }
+        { company_name: 1, role: 1, _id: 1,category:1 }
       );
-      const allRoles = temp?.map((j) => j.role.toLowerCase());
+      const allRoles = temp?.map((j) => j?.category.toLowerCase());
       labelNames = [...new Set(allRoles)];
       nums.length = labelNames.length;
       nums.fill(0);
